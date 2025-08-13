@@ -12,6 +12,9 @@ class SynesthesiaApp(tk.Tk):
         super().__init__()
         self.title("Mind Palette")
         self.geometry("800x600")
+        
+        # Cross-platform styling
+        self.setup_cross_platform_styling()
         self.center_window()
 
         # --- Set app icon (title bar + taskbar) ---
@@ -35,7 +38,26 @@ class SynesthesiaApp(tk.Tk):
         self.notebook.add(self.associations_tab, text="Associations")
         self.notebook.pack(expand=1, fill="both")
 
-        # Initialize tab modules
+        # Initialize tab modules after notebook is set up
+        self.initialize_tab_modules()
+
+    def setup_cross_platform_styling(self):
+        """Set up consistent styling across platforms"""
+        import platform
+        
+        # Store fonts for use in other modules (but don't override system defaults)
+        if platform.system() == "Darwin":  # macOS
+            self.default_font = ("SF Pro Display", 12)
+            self.small_font = ("SF Pro Display", 10)
+        elif platform.system() == "Windows":
+            self.default_font = ("Segoe UI", 12)
+            self.small_font = ("Segoe UI", 10)
+        else:  # Linux and others
+            self.default_font = ("DejaVu Sans", 12)
+            self.small_font = ("DejaVu Sans", 10)
+
+    def initialize_tab_modules(self):
+        """Initialize all tab modules after the notebook is set up"""
         self.train_module = TrainTab(self.train_tab)
         self.summarize_module = SummarizeTab(self.summarize_tab)
         self.chat_module = ChatTab(self.chat_tab)

@@ -9,7 +9,7 @@ if not api_key:
 
 client = genai.Client(api_key=api_key)
 
-SUMMARY_PATH = "summary.txt"
+SUMMARY_PATH = "db/summary.txt"
 MODEL_NAME = "gemini-2.5-flash"  # adjust to one you have access to
 
 def generate_summary_text(data):
@@ -21,31 +21,32 @@ Given a list of colors and their associated synesthetic descriptions, summarize 
 2. Organizing traits within each group (e.g. by emotion, energy, complexity, personality tone).
 3. Focusing on common patterns.
 
-Whenever you mention a specific color, ALWAYS include the hex code afterward, like this: "dark maroon (#3c0008)".
-Consider colors like teal (green+blue) separately, and focus on how they combine aspects of the colors mixed.
+Whenever you mention a specific color, ALWAYS include the hex code afterward, like "dark maroon (#3c0008)".
+Consider combinations of primary and secondary colors (like blue-greens, blue-purples, and purple-reds) separately from primary and secondary colors, and focus on how they combine aspects of the colors mixed. Place them between the colors that make them up, following rainbow order.
 
 Format the output like this:
-- Use section headings in **ALL CAPS** for major color groups. Separate sections with a double horizontal line as shown.
-- Use indentation and dashes for MAX 2 traits and nuances
-- Use hanging bullet point format with a bullet for each complete thought, optimized for a window less than 65 characters long.
+- Use section headings in ALL CAPS for major color groups. Separate sections with a double horizontal line as shown.
+- Use indentation and dashes for subcategorization of the HUES only (e.g. "bright", "dark", "earthy", "muted" shades) and examples
+- Use hanging bullet point format with a bullet for each complete thought
+- No more than 64 characters per line!
 - Avoid markdown formatting.
-- Summarize each group of colors as concisely as possible. Focus on extracting overarching patterns.
+- Summarize each group of colors as concisely as possible. Focus on overarching patterns.
 - Keep it visually clear and intuitive, using the following format:
 
 WARM COLORS
 -----------------------------------------------------------------------
 
 Reds:
-   - Bright reds: Characterized by loudness, lack of emotional awareness, and pushing others away
+   - Bright reds: Loud, lack emotional awareness, and pushing others away
      due to self-control issues (lightish red #fe2f4a).
        - Lightish red (#fe2f4a): Loud-mouthed, lack awareness, ...
        - [1 more concise example ONLY if it provides additional context or insight]
-   - Dark reds: [One-sentence summary]
+   - Muted reds: [One-sentence summary]
        - [2 specific concise examples ONLY if they provide additional context or insight]
 Yellows:
-   - Bright yellows: [Description]
+   - Bright yellows: [One-sentence summary]
        - [2 specific concise examples ONLY if they provide additional context or insight]
-   - Dark yellows: [Description]
+   - Murky yellows: [One-sentence summary]
        - [2 specific concise examples ONLY if they provide additional context or insight]\n\n\n   
 COOL COLORS
 -----------------------------------------------------------------------
@@ -56,22 +57,22 @@ NEUTRAL COLORS
 \n\n\n
 =======================================================================
 DARK VS LIGHT:
-[Paragraph about dark colors in general, with examples as appropriate. Start with a 4-space indent, and do not use any line breaks]
+[Indented paragraph about dark colors in general. Do not use line breaks]
 \n
-[Paragraph about light colors in general, with examples as appropriate. Start with a 4-space indent, and do not use any line breaks]
+[Indented paragraph about light colors in general. Do not use line breaks]
 \n\n\n
 =======================================================================
 DULL VS VIBRANT:
-[Paragraph about dull colors in general, with examples as appropriate. Start with a 4-space indent, and do not use any line breaks]
+[Indented paragraph about dull colors in general. Do not use line breaks]
 \n
-[Paragraph about vibrant colors in general, with examples as appropriate. Start with a 4-space indent, and do not use any line breaks]
+[Indented paragraph about vibrant colors in general. Do not use line breaks]
 \n\n\n
 =======================================================================
 OVERALL SUMMARY:
-[2-3 paragraph summary with newlines in between each paragraph. Start each new paragraph with a 4-space indent.]
+[3-paragraph indented summary with newlines between each paragraph.]
 
-Be concise but insightful. Focus on tone, emotion, personality, and energy. Use consistent formatting and line breaks between paragraphs to make the summary easy to read.
-        """
+Be concise but insightful. Focus on deeper patterns not explored or obvious from the rest of the analysis.
+"""
         + "\n".join(
             f"{e['xkcd_name']} ({e['hex']}): {e['associations']}" for e in data
         )

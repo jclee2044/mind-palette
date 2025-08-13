@@ -5,7 +5,7 @@ import os
 import csv
 from PIL import Image, ImageDraw
 import io
-from utils import load_database
+from utils import load_database, setup_cross_platform_scrolling
 
 
 class AssociationsTab:
@@ -27,6 +27,9 @@ class AssociationsTab:
         self.search_entry.pack(side="left", padx=(0, 5))
         self.search_var.trace("w", self.filter_associations)
 
+        # Load database data
+        self.all_associations_data = load_database()
+
         # Create main frame with scrollbar
         main_frame = tk.Frame(self.parent)
         main_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
@@ -44,20 +47,16 @@ class AssociationsTab:
         canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        # Store the canvas and data for filtering
+        # Store the canvas for filtering
         self.associations_canvas = canvas
         self.associations_scrollbar = scrollbar
-        self.all_associations_data = load_database()
 
         # Pack canvas and scrollbar
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # Bind mouse wheel to scroll
-        def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-        
-        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        # Set up cross-platform scrolling
+        setup_cross_platform_scrolling(canvas, self.scrollable_frame)
 
         # Button frame for side-by-side buttons
         button_frame = tk.Frame(self.parent)
@@ -79,6 +78,8 @@ class AssociationsTab:
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
 
+
+        
         if not self.all_associations_data:
             tk.Label(self.scrollable_frame, text="No associations found.", font=("Arial", 12)).pack(pady=20)
             return

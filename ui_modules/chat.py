@@ -4,7 +4,7 @@ import json
 import os
 from gemini_backend import generate_chat_response
 from key_bindings import apply_text_navigation_bindings, bind_enter_to_submit
-from utils import load_database
+from utils import load_database, setup_cross_platform_scrolling
 
 
 class ChatTab:
@@ -35,6 +35,9 @@ class ChatTab:
         scrollbar = tk.Scrollbar(self.chat_output_frame, command=self.chat_response_text.yview)
         scrollbar.pack(side="right", fill="y")
         self.chat_response_text.config(yscrollcommand=scrollbar.set)
+        
+        # Set up cross-platform scrolling
+        setup_cross_platform_scrolling(self.chat_response_text)
 
         # Button frame with Save, View, Export
         chat_button_frame = tk.Frame(self.parent)

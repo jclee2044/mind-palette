@@ -16,24 +16,44 @@ class TrainTab:
         self.setup_ui()
 
     def setup_ui(self):
-        self.color_canvas = tk.Canvas(self.parent, width=350, height=250, bg=self.current_color)
-        self.color_canvas.pack(pady=(45, 5))
-        self.hex_label = tk.Label(self.parent, text=self.current_color, font=("Arial", 12))
-        self.hex_label.pack(pady=(0, 5))
+        # Create main container frame
+        main_frame = tk.Frame(self.parent)
+        main_frame.pack(expand=True, fill="both", padx=20, pady=20)
+        
+        # Create top spacer frame
+        top_spacer = tk.Frame(main_frame)
+        top_spacer.pack(expand=True, fill="both")
+        
+        # Create content frame
+        content_frame = tk.Frame(main_frame)
+        content_frame.pack()
+        
+        # Create bottom spacer frame
+        bottom_spacer = tk.Frame(main_frame)
+        bottom_spacer.pack(expand=True, fill="both")
+        
+        # Color display section
+        self.color_canvas = tk.Canvas(content_frame, width=350, height=250, bg=self.current_color)
+        self.color_canvas.pack(pady=(0, 5))
+        self.hex_label = tk.Label(content_frame, text=self.current_color, font=("Arial", 12))
+        self.hex_label.pack(pady=(0, 10))
 
-        tk.Label(self.parent, text="Synesthetic Association(s):").pack(pady=(10,0))
-        self.synesth_entry = tk.Text(self.parent, height=4, width=60, wrap="word")
-        self.synesth_entry.pack(pady=5)
+        # Input section
+        tk.Label(content_frame, text="Synesthetic Association(s):").pack(pady=(0, 5))
+        self.synesth_entry = tk.Text(content_frame, height=4, width=60, wrap="word")
+        self.synesth_entry.pack(pady=(0, 10))
         bind_enter_to_submit(self.synesth_entry, self.next_color)
         apply_text_navigation_bindings(self.synesth_entry)
 
-        button_frame = tk.Frame(self.parent)
-        button_frame.pack(pady=10)
+        # Button section
+        button_frame = tk.Frame(content_frame)
+        button_frame.pack(pady=(0, 10))
         self.next_button = tk.Button(button_frame, text="Skip/Next Color", command=self.next_color)
         self.next_button.pack()
 
+        # Bottom section with count (outside the centered content)
         self.color_count_label = tk.Label(self.parent, text=f"Colors described: {len(load_database())}")
-        self.color_count_label.pack(pady=(40,5))
+        self.color_count_label.pack(side="bottom", pady=(0, 10))
 
         # Immediately load an untrained color
         self.next_color()

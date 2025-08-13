@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox, filedialog
 import os
 from gemini_backend import update_summary_file
-from utils import load_database, ASCII_ART
+from utils import load_database, ASCII_ART, setup_cross_platform_scrolling
 
 
 class SummarizeTab:
@@ -38,6 +38,9 @@ class SummarizeTab:
             scrollbar = tk.Scrollbar(frame, command=text_widget.yview)
             scrollbar.grid(row=0, column=1, sticky="ns")
             text_widget.config(yscrollcommand=scrollbar.set)
+            
+            # Set up cross-platform scrolling
+            setup_cross_platform_scrolling(text_widget)
 
             # Button frame for side-by-side buttons
             button_frame = tk.Frame(container_frame)

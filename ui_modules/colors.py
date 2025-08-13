@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from matplotlib import colors as mcolors
-from utils import load_database, save_to_database
+from utils import load_database, save_to_database, setup_cross_platform_scrolling
 
 
 class ColorsTab:
@@ -149,6 +149,9 @@ class ColorsTab:
         canvas.configure(yscrollcommand=vsb.set)
         canvas.pack(side="left", fill="both", expand=True)
         vsb.pack(side="right", fill="y")
+        
+        # Set up cross-platform scrolling for the XKCD browser
+        setup_cross_platform_scrolling(canvas, rows_frame)
 
         # === NEW: build a set of hex codes that have associations ===
         db = load_database()
