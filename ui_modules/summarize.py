@@ -1,18 +1,25 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog
 import os
-from gemini_backend import update_summary_file
+from gemini_backend import update_summary_file, has_api_key
 from utils import load_database, ASCII_ART, setup_cross_platform_scrolling
+from ui_modules.api_key_popup import APIKeyPopup
 
 
 class SummarizeTab:
-    def __init__(self, parent):
+    def __init__(self, parent, refresh_all_callback=None):
         self.parent = parent
+        self.refresh_all_callback = refresh_all_callback
         self.setup_ui()
 
     def setup_ui(self):
         for widget in self.parent.winfo_children():
             widget.destroy()
+
+        # Check if API key is available
+        if not has_api_key():
+            self.show_api_key_message()
+            return
 
         summary_path = "db/summary.txt"
         if os.path.exists(summary_path):
@@ -55,6 +62,36 @@ class SummarizeTab:
             tk.Label(self.parent, text="No summary found.", font=("Arial", 12)).pack(pady=20)
             generate_button = tk.Button(self.parent, text="Generate Summary", command=self.update_summary)
             generate_button.pack(pady=5)
+
+    def show_api_key_message(self):
+        """Display message when API key is missing"""
+        # Create a centered container
+        container = tk.Frame(self.parent)
+        container.pack(expand=True, fill="both")
+        
+        # Center the content vertically and horizontally
+        center_frame = tk.Frame(container)
+        center_frame.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Main message
+        message_label = tk.Label(center_frame, text="You need an API key to use this.", 
+                                font=("Arial", 14))
+        message_label.pack(pady=(0, 10))
+        
+        # Link to add API key
+        link_label = tk.Label(center_frame, text="Add one...", 
+                             font=("Arial", 13), fg="blue", cursor="hand2")
+        link_label.pack()
+        
+        # Bind click event to the link
+        link_label.bind("<Button-1>", self.open_api_key_help)
+        link_label.bind("<Enter>", lambda e: link_label.config(fg="darkblue"))
+        link_label.bind("<Leave>", lambda e: link_label.config(fg="blue"))
+
+    def open_api_key_help(self, event=None):
+        """Open help for adding API key"""
+        callback = self.refresh_all_callback if self.refresh_all_callback else self.setup_ui
+        APIKeyPopup(self.parent, refresh_callback=callback)
 
     def update_summary(self):
         db = load_database()

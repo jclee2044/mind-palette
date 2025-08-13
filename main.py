@@ -10,7 +10,7 @@ from ui_modules.associations import AssociationsTab
 class SynesthesiaApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Mind Palette")
+        self.title("MindPalette")
         self.geometry("800x600")
         
         # Cross-platform styling
@@ -59,10 +59,15 @@ class SynesthesiaApp(tk.Tk):
     def initialize_tab_modules(self):
         """Initialize all tab modules after the notebook is set up"""
         self.train_module = TrainTab(self.train_tab)
-        self.summarize_module = SummarizeTab(self.summarize_tab)
-        self.chat_module = ChatTab(self.chat_tab)
+        self.summarize_module = SummarizeTab(self.summarize_tab, self.refresh_all_tabs)
+        self.chat_module = ChatTab(self.chat_tab, self.refresh_all_tabs)
         self.colors_module = ColorsTab(self.view_colors_tab)
         self.associations_module = AssociationsTab(self.associations_tab)
+
+    def refresh_all_tabs(self):
+        """Refresh all tabs that depend on API key availability"""
+        self.summarize_module.setup_ui()
+        self.chat_module.setup_ui()
 
     def center_window(self):
         self.update_idletasks()

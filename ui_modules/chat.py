@@ -2,19 +2,26 @@ import tkinter as tk
 from tkinter import messagebox, filedialog
 import json
 import os
-from gemini_backend import generate_chat_response
+from gemini_backend import generate_chat_response, has_api_key
 from key_bindings import apply_text_navigation_bindings, bind_enter_to_submit
 from utils import load_database, setup_cross_platform_scrolling
+from ui_modules.api_key_popup import APIKeyPopup
 
 
 class ChatTab:
-    def __init__(self, parent):
+    def __init__(self, parent, refresh_all_callback=None):
         self.parent = parent
+        self.refresh_all_callback = refresh_all_callback
         self.setup_ui()
 
     def setup_ui(self):
         for widget in self.parent.winfo_children():
             widget.destroy()
+
+        # Check if API key is available
+        if not has_api_key():
+            self.show_api_key_message()
+            return
 
         tk.Label(self.parent, text="Enter your prompt:").pack(pady=5)
         self.chat_entry = tk.Text(self.parent, height=4, width=60, wrap="word")
@@ -249,4 +256,34 @@ class ChatTab:
                 f.write(response_text)
             messagebox.showinfo("Export", f"Response exported to {file_path}")
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to export response: {str(e)}") 
+            messagebox.showerror("Error", f"Failed to export response: {str(e)}")
+
+    def show_api_key_message(self):
+        """Display message when API key is missing"""
+        # Create a centered container
+        container = tk.Frame(self.parent)
+        container.pack(expand=True, fill="both")
+        
+        # Center the content vertically and horizontally
+        center_frame = tk.Frame(container)
+        center_frame.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Main message
+        message_label = tk.Label(center_frame, text="You need an API key to use this.", 
+                                font=("Arial", 14))
+        message_label.pack(pady=(0, 10))
+        
+        # Link to add API key
+        link_label = tk.Label(center_frame, text="Add one...", 
+                             font=("Arial", 13), fg="blue", cursor="hand2")
+        link_label.pack()
+        
+        # Bind click event to the link
+        link_label.bind("<Button-1>", self.open_api_key_help)
+        link_label.bind("<Enter>", lambda e: link_label.config(fg="darkblue"))
+        link_label.bind("<Leave>", lambda e: link_label.config(fg="blue"))
+
+    def open_api_key_help(self, event=None):
+        """Open help for adding API key"""
+        callback = self.refresh_all_callback if self.refresh_all_callback else self.setup_ui
+        APIKeyPopup(self.parent, refresh_callback=callback) 
