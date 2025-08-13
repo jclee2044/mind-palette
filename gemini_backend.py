@@ -18,7 +18,7 @@ def generate_summary_text(data):
 
 Given a list of colors and their associated synesthetic descriptions, summarize the data by:
 1. Grouping colors into broader color categories arranged in rainbow order.
-2. Organizing traits within each group (e.g. by emotion, energy, complexity, personality tone).
+2. Organizing traits within each group by hue.
 3. Focusing on common patterns.
 
 Whenever you mention a specific color, ALWAYS include the hex code afterward, like "dark maroon (#3c0008)".
@@ -35,7 +35,8 @@ Format the output like this:
 
 WARM COLORS
 -----------------------------------------------------------------------
-
+Pinks:
+...
 Reds:
    - Bright reds: Loud, lack emotional awareness, and pushing others away
      due to self-control issues (lightish red #fe2f4a).

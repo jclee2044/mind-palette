@@ -150,13 +150,14 @@ class ColorsTab:
         canvas.configure(yscrollcommand=vsb.set)
         canvas.pack(side="left", fill="both", expand=True)
         vsb.pack(side="right", fill="y")
-        
-        # Set up cross-platform scrolling for the XKCD browser
+
+        # Cross‑platform scrolling
         setup_cross_platform_scrolling(canvas, rows_frame)
 
-        # === NEW: build a set of hex codes that have associations ===
+        # === NEW/UPDATED: sets for association + saved-for-later ===
         db = load_database()
         has_assoc_hex = {e["hex"].lower() for e in db if e.get("associations", "").strip()}
+        saved_hex = {e["hex"].lower() for e in load_saved_for_later()}
 
         # --- data prep (name, hex), rainbow-ish sort for nicer browsing ---
         rainbow_order = {'pink':0,'red':1,'orang':2,'yellow':3,'gold':3,'green':4,'teal':5,
@@ -167,8 +168,10 @@ class ColorsTab:
                 if k in l: return v
             return 999
 
-        # === CHANGED: include has_assoc flag in each row dict ===
-        all_rows = [{"name": n.replace("xkcd:", ""), "hex": hx, "has_assoc": (hx.lower() in has_assoc_hex)}
+        # === CHANGED: include has_assoc and is_saved flags in each row dict ===
+        all_rows = [{"name": n.replace("xkcd:", ""), "hex": hx,
+                    "has_assoc": (hx.lower() in has_assoc_hex),
+                    "is_saved": (hx.lower() in saved_hex)}
                     for n, hx in mcolors.XKCD_COLORS.items()]
         all_rows.sort(key=lambda d: (pri(d["name"]), d["name"]))
 
@@ -184,7 +187,6 @@ class ColorsTab:
 
         # --- selection handler -> fills Colors tab ---
         def choose(hx, nm):
-            # Jump to Colors tab, set to Hex mode, set hex, update preview
             self.input_type.set("Hex Code")
             self.hex_entry.delete(0, tk.END)
             self.hex_entry.insert(0, hx)
@@ -194,7 +196,6 @@ class ColorsTab:
         # --- table populate/filter ---
         row_widgets = []
         def populate(data):
-            # clear previous rows
             for w in row_widgets:
                 w.destroy()
             row_widgets.clear()
@@ -207,18 +208,27 @@ class ColorsTab:
                 tk.Label(rf, text=e["name"], width=12, anchor="w").pack(side="left")
                 tk.Label(rf, text=e["hex"], width=7, anchor="w").pack(side="left", padx=(3, 0))
 
-                # === NEW: status checkmark (✓ if association exists) ===
-                status_text = "✓" if e.get("has_assoc") else ""
+                # === NEW: status indicators (✓ if association exists, S if saved for later) ===
+                status_text = ""
+                status_color = "black"
+                status_font = ("Arial", 17, "bold")  # default for ✓
+                if e.get("has_assoc"):
+                    status_text = "✓"
+                    status_color = "green"
+                elif e.get("is_saved"):
+                    status_text = "S"
+                    status_color = "#3d7afd"
+                    status_font = ("Arial", 16)
+
                 tk.Label(
                     rf,
                     text=status_text,
                     width=7,
                     anchor="w",
-                    fg="green",
-                    font=("Arial", 17, "bold")  # bigger and bold
+                    fg=status_color,
+                    font=status_font
                 ).pack(side="left", padx=(6, 0))
 
-                # click/enter selects
                 def _on_click(ev=None, hx=e["hex"], nm=e["name"]):
                     choose(hx, nm)
                 rf.bind("<Button-1>", _on_click)
@@ -232,19 +242,18 @@ class ColorsTab:
             if not q:
                 populate(all_rows)
             else:
-                # === CHANGED: keep has_assoc in filtered data ===
                 filtered = [e for e in all_rows if q in e["name"].lower() or q in e["hex"].lower()]
                 populate(filtered)
 
         query_var.trace("w", do_filter)
         populate(all_rows)
 
-        # keyboard niceties: Enter picks first visible, Esc closes
         def pick_first(_=None):
             if row_widgets:
                 row_widgets[0].event_generate("<Button-1>")
         win.bind("<Return>", pick_first)
         win.bind("<Escape>", lambda e: win.destroy())
+
 
     def display_association(self, hex_code):
         db = load_database()
