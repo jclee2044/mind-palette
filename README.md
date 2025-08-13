@@ -146,10 +146,6 @@ The modular structure makes it easy to add new functionality:
 4. Test on multiple platforms
 5. Submit a pull request
 
-## 📝 License
-
-[Add your license information here]
-
 ## 🙏 Acknowledgments
 
 - XKCD color palette for comprehensive color data
