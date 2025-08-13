@@ -5,6 +5,7 @@ from ui_modules.summarize import SummarizeTab
 from ui_modules.chat import ChatTab
 from ui_modules.colors import ColorsTab
 from ui_modules.associations import AssociationsTab
+from utils import set_database_update_callback
 
 
 class SynesthesiaApp(tk.Tk):
@@ -62,12 +63,23 @@ class SynesthesiaApp(tk.Tk):
         self.summarize_module = SummarizeTab(self.summarize_tab, self.refresh_all_tabs)
         self.chat_module = ChatTab(self.chat_tab, self.refresh_all_tabs)
         self.colors_module = ColorsTab(self.view_colors_tab)
-        self.associations_module = AssociationsTab(self.associations_tab)
+        self.associations_module = AssociationsTab(self.associations_tab, self.refresh_associations)
+        
+        # Set up database update callback
+        set_database_update_callback(self.refresh_associations)
+        
+        # Initial refresh of associations table
+        self.refresh_associations()
 
     def refresh_all_tabs(self):
         """Refresh all tabs that depend on API key availability"""
         self.summarize_module.setup_ui()
         self.chat_module.setup_ui()
+
+    def refresh_associations(self):
+        """Refresh the associations table"""
+        if hasattr(self, 'associations_module'):
+            self.associations_module.refresh_table()
 
     def center_window(self):
         self.update_idletasks()

@@ -9,8 +9,9 @@ from utils import load_database, setup_cross_platform_scrolling
 
 
 class AssociationsTab:
-    def __init__(self, parent):
+    def __init__(self, parent, refresh_callback=None):
         self.parent = parent
+        self.refresh_callback = refresh_callback
         self.setup_ui()
 
     def setup_ui(self):
@@ -62,16 +63,17 @@ class AssociationsTab:
         button_frame = tk.Frame(self.parent)
         button_frame.pack(pady=10)
         
-        # Update Table button
-        update_button = tk.Button(button_frame, text="Refresh Table", command=self.setup_ui)
-        update_button.pack(side="left", padx=(0, 5))
-        
-        # Export to Excel button
+        # Export to Excel button (removed Refresh Table button)
         export_button = tk.Button(button_frame, text="Export Data to Excel", command=self.export_associations_to_excel)
-        export_button.pack(side="left", padx=(5, 0))
+        export_button.pack()
 
         # Initial population of the table
         self.populate_associations_table()
+
+    def refresh_table(self):
+        """Refresh the associations table with latest data"""
+        self.all_associations_data = load_database()
+        self.populate_associations_table(self.search_var.get())
 
     def populate_associations_table(self, filter_text=""):
         # Clear existing content
