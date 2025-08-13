@@ -2,8 +2,9 @@ import json
 import os
 
 
-# Database path
+# Database paths
 DB_PATH = "db/associations.json"
+saved_for_later_PATH = "db/saved_for_later.json"
 
 
 def load_database():
@@ -40,6 +41,38 @@ def save_to_database(entry):
 
         with open("db/associations_backup.json", "w") as f:
             json.dump(db, f, indent=4)
+
+
+def load_saved_for_later():
+    """Load the save for later database from JSON file"""
+    if os.path.exists(saved_for_later_PATH):
+        try:
+            with open(saved_for_later_PATH, "r") as f:
+                content = f.read().strip()
+                if not content:
+                    return []
+                return json.loads(content)
+        except json.JSONDecodeError:
+            return []
+    return []
+
+
+def save_to_saved_for_later(entry):
+    """Save an entry to the save for later database"""
+    os.makedirs(os.path.dirname(saved_for_later_PATH), exist_ok=True)
+    db = load_saved_for_later()
+    if not any(d["hex"] == entry["hex"] for d in db):
+        db.append(entry)
+        with open(saved_for_later_PATH, "w") as f:
+            json.dump(db, f, indent=4)
+
+
+def remove_from_saved_for_later(hex_code):
+    """Remove an entry from the save for later database"""
+    db = load_saved_for_later()
+    db = [entry for entry in db if entry["hex"] != hex_code]
+    with open(saved_for_later_PATH, "w") as f:
+        json.dump(db, f, indent=4)
 
 
 # ASCII Art constant

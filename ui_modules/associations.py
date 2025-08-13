@@ -63,7 +63,7 @@ class AssociationsTab:
         button_frame.pack(pady=10)
         
         # Update Table button
-        update_button = tk.Button(button_frame, text="Update Table", command=self.setup_ui)
+        update_button = tk.Button(button_frame, text="Refresh Table", command=self.setup_ui)
         update_button.pack(side="left", padx=(0, 5))
         
         # Export to Excel button

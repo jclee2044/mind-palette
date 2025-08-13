@@ -3,7 +3,7 @@ from tkinter import messagebox
 import random
 from matplotlib import colors as mcolors
 from key_bindings import apply_text_navigation_bindings, bind_enter_to_submit
-from utils import load_database, save_to_database
+from utils import load_database, save_to_database, save_to_saved_for_later, remove_from_saved_for_later
 
 # Generate color list from XKCD
 XKCD_COLORS = list(mcolors.XKCD_COLORS.values())
@@ -49,7 +49,9 @@ class TrainTab:
         button_frame = tk.Frame(content_frame)
         button_frame.pack(pady=(0, 10))
         self.next_button = tk.Button(button_frame, text="Skip/Next Color", command=self.next_color)
-        self.next_button.pack()
+        self.next_button.pack(side="left", padx=(0, 10))
+        self.save_later_button = tk.Button(button_frame, text="Save for Later", command=self.saved_for_later)
+        self.save_later_button.pack(side="left")
 
         # Bottom section with count (outside the centered content)
         self.color_count_label = tk.Label(self.parent, text=f"Colors described: {len(load_database())}")
@@ -71,6 +73,8 @@ class TrainTab:
                 "associations": assoc
             }
             save_to_database(entry)
+            # Remove from saved_for_later if it was there
+            remove_from_saved_for_later(hex_code)
 
         # Filter to only colors with NO association yet
         db = load_database()
@@ -87,3 +91,14 @@ class TrainTab:
         self.hex_label.config(text=self.current_color)
         self.synesth_entry.delete("1.0", tk.END)
         self.color_count_label.config(text=f"Colors described: {len(db)}") 
+
+    def saved_for_later(self):
+        """Save the current color for later without writing an association"""
+        hex_code = self.current_color
+        xkcd_name = [name.replace("xkcd:", "") for name, hx in mcolors.XKCD_COLORS.items() if hx == hex_code]
+        entry = {
+            "hex": hex_code,
+            "xkcd_name": xkcd_name[0] if xkcd_name else "unknown"
+        }
+        save_to_saved_for_later(entry)
+        self.next_color() 

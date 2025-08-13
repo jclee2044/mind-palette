@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from matplotlib import colors as mcolors
-from utils import load_database, save_to_database, setup_cross_platform_scrolling
+from utils import load_database, save_to_database, setup_cross_platform_scrolling, load_saved_for_later, save_to_saved_for_later, remove_from_saved_for_later
 
 
 class ColorsTab:
@@ -36,7 +36,8 @@ class ColorsTab:
         # --- second row: centered Browse button ---
         browse_row = tk.Frame(container)
         browse_row.pack(pady=(8, 0))  # directly below inputs, centered by default
-        tk.Button(browse_row, text="Browse XKCD…", command=self.open_xkcd_browser).pack()
+        tk.Button(browse_row, text="Browse XKCD…", command=self.open_xkcd_browser).pack(side="left", padx=(0, 10))
+        tk.Button(browse_row, text="View Saved for Later…", command=self.open_saved_later_browser).pack(side="left")
 
         # --- preview + labels ---
         self.color_display = tk.Canvas(
@@ -268,16 +269,38 @@ class ColorsTab:
                 cursor="hand2"
             )
             self.write_one_link.bind("<Button-1>", lambda e: self.add_association_popup(hex_code))
-            self.write_one_link.pack(pady=(0, 10))
+            self.write_one_link.pack(pady=(0, 5))
         else:
             self.write_one_link.bind("<Button-1>", lambda e: self.add_association_popup(hex_code))
+
+        # Check if color is already saved for later
+        saved_colors = load_saved_for_later()
+        is_already_saved = any(entry["hex"].lower() == hex_code.lower() for entry in saved_colors)
+
+        if not hasattr(self, "save_later_link"):
+            self.save_later_link = tk.Label(
+                self.parent,
+                text="Save for Later...",
+                font=("Arial", 10),
+                fg="blue",
+                cursor="hand2"
+            )
+            self.save_later_link.bind("<Button-1>", lambda e: self.save_current_for_later(hex_code))
+        else:
+            self.save_later_link.bind("<Button-1>", lambda e: self.save_current_for_later(hex_code))
 
         if match and match.get("associations"):
             self.association_label.config(text=match["associations"])
             self.write_one_link.pack_forget()  # Hide "Write one..." if an association exists
+            self.save_later_link.pack_forget()  # Hide "Save for Later..." if an association exists
         else:
             self.association_label.config(text="No associations described yet.")
             self.write_one_link.pack()  # Show "Write one..."
+            # Only show "Save for Later..." if not already saved and no association exists
+            if not is_already_saved:
+                self.save_later_link.pack(pady=(0, 10))
+            else:
+                self.save_later_link.pack_forget()
 
     def add_association_popup(self, hex_code):
         # Popup window
@@ -314,6 +337,8 @@ class ColorsTab:
                     "associations": assoc
                 }
                 save_to_database(entry)
+                # Remove from saved_for_later if it was there
+                remove_from_saved_for_later(hex_code)
                 popup.destroy()
                 self.update_color_display()  # Refresh the displayed association
             else:
@@ -322,4 +347,161 @@ class ColorsTab:
         button_frame = tk.Frame(popup)
         button_frame.pack(pady=10)
         tk.Button(button_frame, text="Save", command=save_and_close).pack(side="left", padx=5)
-        tk.Button(button_frame, text="Cancel", command=popup.destroy).pack(side="left", padx=5) 
+        tk.Button(button_frame, text="Cancel", command=popup.destroy).pack(side="left", padx=5)
+
+    def save_current_for_later(self, hex_code):
+        """Save the current color for later without writing an association"""
+        xkcd_name = [name.replace("xkcd:", "") for name, val in mcolors.XKCD_COLORS.items() if val == hex_code]
+        name = xkcd_name[0] if xkcd_name else "unknown"
+        
+        entry = {
+            "hex": hex_code,
+            "xkcd_name": name
+        }
+        save_to_saved_for_later(entry)
+        
+        # Create a custom messagebox positioned lower on screen
+        msg_win = tk.Toplevel(self.parent)
+        msg_win.title("Saved")
+        msg_win.geometry("300x100")
+        msg_win.transient(self.parent)
+        msg_win.grab_set()
+        
+        # Position lower on screen
+        msg_win.update_idletasks()
+        x = (msg_win.winfo_screenwidth() // 2) - 150
+        y = (msg_win.winfo_screenheight() // 2) + 100  # Lower position
+        msg_win.geometry(f"300x100+{x}+{y}")
+        
+        tk.Label(msg_win, text=f"'{name}' has been saved for later!", font=("Arial", 11)).pack(expand=True)
+        tk.Button(msg_win, text="OK", command=msg_win.destroy).pack(pady=10)
+        
+        # Auto-close after 2 seconds
+        msg_win.after(2000, msg_win.destroy) 
+
+    def open_saved_later_browser(self):
+        saved_colors = load_saved_for_later()
+        if not saved_colors:
+            messagebox.showinfo("No Saved Colors", "You have no colors saved for later.")
+            return
+
+        win = tk.Toplevel(self.parent)
+        win.title(f"Saved for Later ({len(saved_colors)})")
+        win.geometry("260x350")
+        win.transient(self.parent)
+        win.grab_set()
+        win.update_idletasks()
+        x = (win.winfo_screenwidth() // 2) - 150
+        y = (win.winfo_screenheight() // 2) - 200 + 80
+        win.geometry(f"260x350+{x}+{y}")
+
+        # --- search bar ---
+        top = tk.Frame(win)
+        top.pack(fill="x", padx=10, pady=(10, 6))
+        tk.Label(top, text="Search:", font=("Arial", 11)).pack(side="left")
+        query_var = tk.StringVar()
+        search_entry = tk.Entry(top, textvariable=query_var, width=25)
+        search_entry.pack(side="left", padx=(8, 0))
+        search_entry.focus_set()
+
+        instr = tk.Label(
+            win,
+            text="Click any color to load it in the viewer.",
+            font=("Arial", 11, "italic"),
+            fg="gray",
+            anchor="w",
+            justify="left"
+        )
+        instr.pack(pady=(0, 4))
+
+        # --- scrollable table area ---
+        table_wrap = tk.Frame(win)
+        table_wrap.pack(fill="both", expand=True, pady=(0))
+
+        canvas = tk.Canvas(table_wrap, highlightthickness=0)
+        vsb = ttk.Scrollbar(table_wrap, orient="vertical", command=canvas.yview)
+        rows_frame = tk.Frame(canvas)
+        rows_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=rows_frame, anchor="nw")
+        canvas.configure(yscrollcommand=vsb.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        vsb.pack(side="right", fill="y")
+        
+        # Set up cross-platform scrolling for the saved colors browser
+        setup_cross_platform_scrolling(canvas, rows_frame)
+
+        # --- data prep (name, hex) ---
+        all_rows = [{"name": c["xkcd_name"].replace("xkcd:", ""), "hex": c["hex"]} for c in saved_colors]
+        all_rows.sort(key=lambda d: d["name"])
+
+        # --- header ---
+        hdr = tk.Frame(rows_frame)
+        hdr.pack(fill="x", pady=(0, 4))
+        tk.Label(hdr, text="Color", font=("Arial", 10, "bold"), width=6).pack(side="left", padx=(0, 4))
+        tk.Label(hdr, text="Name", font=("Arial", 10, "bold"), width=16, anchor="w").pack(side="left")
+        tk.Label(hdr, text="Hex", font=("Arial", 10, "bold"), width=10, anchor="w").pack(side="left", padx=(0))
+        tk.Label(hdr, text="", font=("Arial", 10, "bold"), width=3, anchor="w").pack(side="left", padx=(6, 0))
+        ttk.Separator(rows_frame, orient="horizontal").pack(fill="x", pady=(0, 4))
+
+        # --- selection handler -> loads color in viewer (same as XKCD browser) ---
+        def choose(hx, nm):
+            # Jump to Colors tab, set to Hex mode, set hex, update preview
+            self.input_type.set("Hex Code")
+            self.hex_entry.delete(0, tk.END)
+            self.hex_entry.insert(0, hx)
+            self.update_color_display()
+            win.destroy()
+
+        # --- table populate/filter ---
+        row_widgets = []
+        def populate(data):
+            # clear previous rows
+            for w in row_widgets:
+                w.destroy()
+            row_widgets.clear()
+
+            for e in data:
+                rf = tk.Frame(rows_frame)
+                rf.pack(fill="x", pady=0)
+
+                tk.Canvas(rf, width=20, height=20, bg=e["hex"], relief="solid", bd=1).pack(side="left", padx=(0, 4))
+                tk.Label(rf, text=e["name"], width=12, anchor="w").pack(side="left")
+                tk.Label(rf, text=e["hex"], width=7, anchor="w").pack(side="left", padx=(3, 0))
+
+                # Delete button
+                def delete_color(ev=None, hx=e["hex"]):
+                    remove_from_saved_for_later(hx)
+                    win.destroy()
+                    self.open_saved_later_browser()  # Re-open to show updated list
+                
+                delete_btn = tk.Label(rf, text="×", font=("Arial", 13, "bold"), fg="grey", width=3)
+                delete_btn.pack(side="left", padx=(6, 0))
+                delete_btn.bind("<Button-1>", delete_color)
+
+                # click/enter selects (but not on delete button)
+                def _on_click(ev=None, hx=e["hex"], nm=e["name"]):
+                    choose(hx, nm)
+                rf.bind("<Button-1>", _on_click)
+                for c in rf.winfo_children():
+                    if c != delete_btn:  # Don't bind delete button to choose function
+                        c.bind("<Button-1>", _on_click)
+
+                row_widgets.append(rf)
+
+        def do_filter(*_):
+            q = query_var.get().strip().lower()
+            if not q:
+                populate(all_rows)
+            else:
+                filtered = [e for e in all_rows if q in e["name"].lower() or q in e["hex"].lower()]
+                populate(filtered)
+
+        query_var.trace("w", do_filter)
+        populate(all_rows)
+
+        # keyboard niceties: Enter picks first visible, Esc closes
+        def pick_first(_=None):
+            if row_widgets:
+                row_widgets[0].event_generate("<Button-1>")
+        win.bind("<Return>", pick_first)
+        win.bind("<Escape>", lambda e: win.destroy()) 
