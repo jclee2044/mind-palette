@@ -39,8 +39,20 @@ class SynesthesiaApp(tk.Tk):
         self.notebook.add(self.associations_tab, text="Associations")
         self.notebook.pack(expand=1, fill="both")
 
+        # Bind tab selection event to refresh associations when clicked
+        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_changed)
+
         # Initialize tab modules after notebook is set up
         self.initialize_tab_modules()
+
+    def on_tab_changed(self, event):
+        """Handle tab selection changes"""
+        current_tab = self.notebook.select()
+        tab_id = self.notebook.index(current_tab)
+        
+        # If Associations tab is selected (index 4), refresh the table
+        if tab_id == 4:  # Associations tab
+            self.refresh_associations()
 
     def setup_cross_platform_styling(self):
         """Set up consistent styling across platforms"""

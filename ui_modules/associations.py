@@ -5,7 +5,7 @@ import os
 import csv
 from PIL import Image, ImageDraw
 import io
-from utils import load_database, setup_cross_platform_scrolling
+from utils import load_database, setup_cross_platform_scrolling, sort_colors_by_rainbow
 
 
 class AssociationsTab:
@@ -80,24 +80,9 @@ class AssociationsTab:
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
 
-
-        
         if not self.all_associations_data:
             tk.Label(self.scrollable_frame, text="No associations found.", font=("Arial", 12)).pack(pady=20)
             return
-
-        # Sort by rainbow order (ROYGBIV)
-        rainbow_order = {
-            'pink': 0, 'red': 1, 'orang': 2, 'yellow': 3, 'gold': 3, 'green': 4, 'teal': 5, 'turquoise': 5, 'cyan': 5,
-            'blue': 6, 'indigo': 7, 'violet': 8, 'periwinkle': 8, 'purple': 9,
-        }
-
-        def get_rainbow_priority(color_name):
-            color_lower = color_name.lower()
-            for rainbow_color, priority in rainbow_order.items():
-                if rainbow_color in color_lower:
-                    return priority
-            return 999  # Put unknown colors at the end
 
         # Filter data if search text is provided
         if filter_text:
@@ -108,9 +93,9 @@ class AssociationsTab:
                     filter_lower in entry['hex'].lower() or 
                     filter_lower in entry['associations'].lower()):
                     filtered_data.append(entry)
-            sorted_db = sorted(filtered_data, key=lambda x: get_rainbow_priority(x['xkcd_name']))
+            sorted_db = sort_colors_by_rainbow(filtered_data)
         else:
-            sorted_db = sorted(self.all_associations_data, key=lambda x: get_rainbow_priority(x['xkcd_name']))
+            sorted_db = sort_colors_by_rainbow(self.all_associations_data)
 
         # Create header
         header_frame = tk.Frame(self.scrollable_frame)
@@ -271,6 +256,9 @@ class AssociationsTab:
             messagebox.showinfo("Export", "No associations to export.")
             return
 
+        # Sort the data by hue (same as table display)
+        sorted_db = sort_colors_by_rainbow(db)
+
         file_path = filedialog.asksaveasfilename(
             defaultextension=".xlsx",
             filetypes=[("Excel files", "*.xlsx")],
@@ -292,8 +280,8 @@ class AssociationsTab:
                 ws.cell(row=1, column=col, value=header)
                 ws.cell(row=1, column=col).font = openpyxl.styles.Font(bold=True)
 
-            # Add data rows
-            for row, entry in enumerate(db, 2):
+            # Add data rows (using sorted data)
+            for row, entry in enumerate(sorted_db, 2):
                 # Color name
                 ws.cell(row=row, column=2, value=entry['xkcd_name'])
                 

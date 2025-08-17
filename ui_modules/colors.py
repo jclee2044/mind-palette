@@ -1,7 +1,7 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from matplotlib import colors as mcolors
-from utils import load_database, save_to_database, setup_cross_platform_scrolling, load_saved_for_later, save_to_saved_for_later, remove_from_saved_for_later
+from utils import load_database, save_to_database, setup_cross_platform_scrolling, load_saved_for_later, save_to_saved_for_later, remove_from_saved_for_later, sort_colors_by_rainbow
 
 
 class ColorsTab:
@@ -100,52 +100,74 @@ class ColorsTab:
             color_name = match[0].replace("xkcd:", "") if match else "unknown"
             self.hex_entry.delete(0, tk.END)
             self.hex_entry.insert(0, color_name)
-
-        elif self.input_type.get() == "Hex Code":
+        else:
             self.hex_entry.delete(0, tk.END)
             self.hex_entry.insert(0, current_hex)
 
-        self.update_color_display()
+    def display_association(self, hex_code):
+        db = load_database()
+        association = None
+        for entry in db:
+            if entry["hex"].lower() == hex_code.lower():
+                association = entry["associations"]
+                break
+
+        if association:
+            # Create a popup to show the association
+            popup = tk.Toplevel(self.parent)
+            popup.title("Color Association")
+            popup.geometry("400x200")
+            popup.transient(self.parent)
+            popup.grab_set()
+
+            # Center the popup
+            popup.update_idletasks()
+            x = (popup.winfo_screenwidth() // 2) - (400 // 2)
+            y = (popup.winfo_screenheight() // 2) - (200 // 2)
+            popup.geometry(f"400x200+{x}+{y}")
+
+            # Content
+            tk.Label(popup, text=f"Association for {hex_code}:", font=("Arial", 12, "bold")).pack(pady=10)
+            text_widget = tk.Text(popup, wrap="word", height=6, width=50)
+            text_widget.pack(padx=20, pady=10, fill="both", expand=True)
+            text_widget.insert("1.0", association)
+            text_widget.config(state="disabled")
+
+            # Close button
+            tk.Button(popup, text="Close", command=popup.destroy).pack(pady=10)
 
     def open_xkcd_browser(self):
-        # --- popup scaffold ---
+        # Create popup window
         win = tk.Toplevel(self.parent)
         win.title("Browse XKCD Colors")
         win.geometry("300x350")
         win.transient(self.parent)
         win.grab_set()
+
+        # Center the popup
         win.update_idletasks()
-        x = (win.winfo_screenwidth() // 2) - 150
-        y = (win.winfo_screenheight() // 2) - 200 + 80
+        x = (win.winfo_screenwidth() // 2) - (300 // 2)
+        y = (win.winfo_screenheight() // 2) - (350 // 2)
         win.geometry(f"300x350+{x}+{y}")
 
-        # --- search bar ---
+        # Search frame
         top = tk.Frame(win)
-        top.pack(fill="x", padx=10, pady=(10, 6))
+        top.pack(fill="x", padx=10, pady=10)
         tk.Label(top, text="Search:", font=("Arial", 11, "bold")).pack(side="left")
         query_var = tk.StringVar()
-        search_entry = tk.Entry(top, textvariable=query_var, width=35)
-        search_entry.pack(side="left", padx=(8, 0))
-        search_entry.focus_set()
+        query_entry = tk.Entry(top, textvariable=query_var, width=30)
+        query_entry.pack(side="left", padx=(5, 0))
 
-        instr = tk.Label(
-            win,
-            text="Click any color to load it in the viewer.",
-            font=("Arial", 11, "italic"),
-            fg="gray",
-            anchor="w",
-            justify="left"
-        )
-        instr.pack(pady=(0, 4))
-
-        # --- scrollable table area ---
-        table_wrap = tk.Frame(win)
-        table_wrap.pack(fill="both", expand=True, pady=(0))
-
-        canvas = tk.Canvas(table_wrap, highlightthickness=0)
-        vsb = ttk.Scrollbar(table_wrap, orient="vertical", command=canvas.yview)
+        # Scrollable frame for colors
+        canvas = tk.Canvas(win)
+        vsb = tk.Scrollbar(win, orient="vertical", command=canvas.yview)
         rows_frame = tk.Frame(canvas)
-        rows_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+        rows_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
         canvas.create_window((0, 0), window=rows_frame, anchor="nw")
         canvas.configure(yscrollcommand=vsb.set)
         canvas.pack(side="left", fill="both", expand=True)
@@ -159,21 +181,14 @@ class ColorsTab:
         has_assoc_hex = {e["hex"].lower() for e in db if e.get("associations", "").strip()}
         saved_hex = {e["hex"].lower() for e in load_saved_for_later()}
 
-        # --- data prep (name, hex), rainbow-ish sort for nicer browsing ---
-        rainbow_order = {'pink':0,'red':1,'orang':2,'yellow':3,'gold':3,'green':4,'teal':5,
-                        'turquoise':5,'cyan':5,'blue':6,'indigo':7,'violet':8,'periwinkle':8,'purple':9}
-        def pri(name):
-            l = name.lower()
-            for k,v in rainbow_order.items():
-                if k in l: return v
-            return 999
-
         # === CHANGED: include has_assoc and is_saved flags in each row dict ===
         all_rows = [{"name": n.replace("xkcd:", ""), "hex": hx,
                     "has_assoc": (hx.lower() in has_assoc_hex),
                     "is_saved": (hx.lower() in saved_hex)}
                     for n, hx in mcolors.XKCD_COLORS.items()]
-        all_rows.sort(key=lambda d: (pri(d["name"]), d["name"]))
+        
+        # Sort by true rainbow order using the new function
+        all_rows = sort_colors_by_rainbow(all_rows)
 
         # --- header ---
         hdr = tk.Frame(rows_frame)
@@ -247,69 +262,6 @@ class ColorsTab:
 
         query_var.trace("w", do_filter)
         populate(all_rows)
-
-        def pick_first(_=None):
-            if row_widgets:
-                row_widgets[0].event_generate("<Button-1>")
-        win.bind("<Return>", pick_first)
-        win.bind("<Escape>", lambda e: win.destroy())
-
-
-    def display_association(self, hex_code):
-        db = load_database()
-        match = next((entry for entry in db if entry["hex"].lower() == hex_code.lower()), None)
-
-        if not hasattr(self, "association_label"):
-            self.association_label = tk.Label(
-                self.parent,
-                text="",
-                wraplength=300,
-                font=("Arial", 10),
-                fg="gray"
-            )
-            self.association_label.pack(pady=(15, 0))
-
-        if not hasattr(self, "write_one_link"):
-            self.write_one_link = tk.Label(
-                self.parent,
-                text="Write one...",
-                font=("Arial", 10),
-                fg="blue",
-                cursor="hand2"
-            )
-            self.write_one_link.bind("<Button-1>", lambda e: self.add_association_popup(hex_code))
-            self.write_one_link.pack(pady=(0, 5))
-        else:
-            self.write_one_link.bind("<Button-1>", lambda e: self.add_association_popup(hex_code))
-
-        # Check if color is already saved for later
-        saved_colors = load_saved_for_later()
-        is_already_saved = any(entry["hex"].lower() == hex_code.lower() for entry in saved_colors)
-
-        if not hasattr(self, "save_later_link"):
-            self.save_later_link = tk.Label(
-                self.parent,
-                text="Save for Later...",
-                font=("Arial", 10),
-                fg="blue",
-                cursor="hand2"
-            )
-            self.save_later_link.bind("<Button-1>", lambda e: self.save_current_for_later(hex_code))
-        else:
-            self.save_later_link.bind("<Button-1>", lambda e: self.save_current_for_later(hex_code))
-
-        if match and match.get("associations"):
-            self.association_label.config(text=match["associations"])
-            self.write_one_link.pack_forget()  # Hide "Write one..." if an association exists
-            self.save_later_link.pack_forget()  # Hide "Save for Later..." if an association exists
-        else:
-            self.association_label.config(text="No associations described yet.")
-            self.write_one_link.pack()  # Show "Write one..."
-            # Only show "Save for Later..." if not already saved and no association exists
-            if not is_already_saved:
-                self.save_later_link.pack(pady=(0, 10))
-            else:
-                self.save_later_link.pack_forget()
 
     def add_association_popup(self, hex_code):
         # Popup window
@@ -441,7 +393,8 @@ class ColorsTab:
 
         # --- data prep (name, hex) ---
         all_rows = [{"name": c["xkcd_name"].replace("xkcd:", ""), "hex": c["hex"]} for c in saved_colors]
-        all_rows.sort(key=lambda d: d["name"])
+        # Sort by true rainbow order using the new function
+        all_rows = sort_colors_by_rainbow(all_rows)
 
         # --- header ---
         hdr = tk.Frame(rows_frame)

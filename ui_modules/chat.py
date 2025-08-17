@@ -256,7 +256,7 @@ class ChatTab:
                 f.write(response_text)
             messagebox.showinfo("Export", f"Response exported to {file_path}")
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to export response: {str(e)}")
+            messagebox.showerror("Error", f"Failed to export response: {str(e)}") 
 
     def show_api_key_message(self):
         """Display message when API key is missing"""

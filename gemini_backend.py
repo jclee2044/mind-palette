@@ -153,4 +153,4 @@ def generate_chat_response(prompt, data):
         model=MODEL_NAME,
         contents=full_prompt
     )
-    return response.text
+    return response.text 
