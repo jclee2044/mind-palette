@@ -52,6 +52,35 @@ class ColorsTab:
         self.hex_code_label = tk.Label(self.parent, text="#ffffff", font=("Arial", 12))
         self.hex_code_label.pack()
 
+        # --- association status and buttons ---
+        self.association_frame = tk.Frame(self.parent)
+        self.association_frame.pack(pady=(10, 0))
+
+        self.association_label = tk.Label(self.association_frame, text="", font=("Arial", 11), fg="gray")
+        self.association_label.pack()
+
+        # Hyperlink-style labels instead of buttons
+        self.write_one_link = tk.Label(
+            self.association_frame,
+            text="Write one...",
+            font=("Arial", 11),
+            fg="blue",
+            cursor="hand2"
+        )
+        self.write_one_link.bind("<Button-1>", lambda e: self.add_association_popup(self.hex_code_label.cget("text")))
+        
+        self.save_later_link = tk.Label(
+            self.association_frame,
+            text="Save for later...",
+            font=("Arial", 11),
+            fg="blue",
+            cursor="hand2"
+        )
+        self.save_later_link.bind("<Button-1>", lambda e: self.save_current_for_later(self.hex_code_label.cget("text")))
+
+        # Initialize the association display for the default color
+        self.display_association("#ffffff")
+
     def update_color_display(self, event=None):
         input_value = self.hex_entry.get().strip().lower()
         mode = self.input_type.get()
@@ -106,35 +135,35 @@ class ColorsTab:
 
     def display_association(self, hex_code):
         db = load_database()
+        saved_for_later = load_saved_for_later()
+        
+        # Check if color has an association
         association = None
         for entry in db:
             if entry["hex"].lower() == hex_code.lower():
                 association = entry["associations"]
                 break
-
+        
+        # Check if color is saved for later
+        is_saved_for_later = any(entry["hex"].lower() == hex_code.lower() for entry in saved_for_later)
+        
+        # Update association label and hyperlinks
         if association:
-            # Create a popup to show the association
-            popup = tk.Toplevel(self.parent)
-            popup.title("Color Association")
-            popup.geometry("400x200")
-            popup.transient(self.parent)
-            popup.grab_set()
-
-            # Center the popup
-            popup.update_idletasks()
-            x = (popup.winfo_screenwidth() // 2) - (400 // 2)
-            y = (popup.winfo_screenheight() // 2) - (200 // 2)
-            popup.geometry(f"400x200+{x}+{y}")
-
-            # Content
-            tk.Label(popup, text=f"Association for {hex_code}:", font=("Arial", 12, "bold")).pack(pady=10)
-            text_widget = tk.Text(popup, wrap="word", height=6, width=50)
-            text_widget.pack(padx=20, pady=10, fill="both", expand=True)
-            text_widget.insert("1.0", association)
-            text_widget.config(state="disabled")
-
-            # Close button
-            tk.Button(popup, text="Close", command=popup.destroy).pack(pady=10)
+            # Color has an association
+            display_text = association[:100] + "..." if len(association) > 100 else association
+            self.association_label.config(text=f"Association: {display_text}", fg="black")
+            self.write_one_link.pack_forget()  # Hide "Write one..." link
+            self.save_later_link.pack_forget()  # Hide "Save for later..." link
+        elif is_saved_for_later:
+            # Color is saved for later but has no association
+            self.association_label.config(text="Saved for later. No associations described yet.", fg="gray")
+            self.write_one_link.pack()  # Show "Write one..." link
+            self.save_later_link.pack_forget()  # Hide "Save for later..." link since already saved
+        else:
+            # Color has no association and is not saved for later
+            self.association_label.config(text="No associations described yet.", fg="gray")
+            self.write_one_link.pack()  # Show "Write one..." link
+            self.save_later_link.pack()  # Show "Save for later..." link
 
     def open_xkcd_browser(self):
         # Create popup window
@@ -338,7 +367,10 @@ class ColorsTab:
         tk.Button(msg_win, text="OK", command=msg_win.destroy).pack(pady=10)
         
         # Auto-close after 2 seconds
-        msg_win.after(2000, msg_win.destroy) 
+        msg_win.after(2000, msg_win.destroy)
+        
+        # Update the association display to reflect the saved state
+        self.display_association(hex_code) 
 
     def open_saved_later_browser(self):
         saved_colors = load_saved_for_later()
