@@ -165,18 +165,33 @@ def save_to_database(entry):
     """Save an entry to the associations database"""
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     db = load_database()
-    if not any(d["hex"] == entry["hex"] for d in db):
+    
+    # Check if entry already exists
+    existing_index = None
+    for i, d in enumerate(db):
+        if d["hex"] == entry["hex"]:
+            existing_index = i
+            break
+    
+    if existing_index is not None:
+        # Update existing entry
+        db[existing_index] = entry
+    else:
+        # Add new entry
         db.append(entry)
-        with open(DB_PATH, "w") as f:
-            json.dump(db, f, indent=4)
+    
+    # Save to main database
+    with open(DB_PATH, "w") as f:
+        json.dump(db, f, indent=4)
 
-        with open("db/associations_backup.json", "w") as f:
-            json.dump(db, f, indent=4)
+    # Save to backup
+    with open("db/associations_backup.json", "w") as f:
+        json.dump(db, f, indent=4)
 
-        # Trigger the callback if it exists
-        callback = get_database_update_callback()
-        if callback:
-            callback()
+    # Trigger the callback if it exists
+    callback = get_database_update_callback()
+    if callback:
+        callback()
 
 
 def load_saved_for_later():

@@ -20,17 +20,17 @@ class ColorsTab:
         tk.Label(entry_frame, text="Input Type:").pack(side="left", padx=(20, 20))
         self.input_type = ttk.Combobox(
             entry_frame,
-            values=["Hex Code", "Color Name"],
+            values=["Color Name", "Hex Code"],
             state="readonly",
             width=10
         )
-        self.input_type.set("Hex Code")
+        self.input_type.set("Color Name")
         self.input_type.pack(side="left", padx=(0, 10))
         self.input_type.bind("<<ComboboxSelected>>", self.on_input_type_change)
 
         self.hex_entry = tk.Entry(entry_frame, width=15)
         self.hex_entry.pack(side="left")
-        self.hex_entry.insert(0, "#ffffff")
+        self.hex_entry.insert(0, "white")
         self.hex_entry.bind("<KeyRelease>", self.update_color_display)
 
         # --- second row: centered Browse button ---
@@ -56,7 +56,7 @@ class ColorsTab:
         self.association_frame = tk.Frame(self.parent)
         self.association_frame.pack(pady=(10, 0))
 
-        self.association_label = tk.Label(self.association_frame, text="", font=("Arial", 11), fg="gray")
+        self.association_label = tk.Label(self.association_frame, text="", font=("Arial", 11), fg="gray", wraplength=350, justify="left")
         self.association_label.pack()
 
         # Hyperlink-style labels instead of buttons
@@ -77,9 +77,18 @@ class ColorsTab:
             cursor="hand2"
         )
         self.save_later_link.bind("<Button-1>", lambda e: self.save_current_for_later(self.hex_code_label.cget("text")))
+        
+        self.edit_link = tk.Label(
+            self.association_frame,
+            text="Edit...",
+            font=("Arial", 11),
+            fg="blue",
+            cursor="hand2"
+        )
+        self.edit_link.bind("<Button-1>", lambda e: self.add_association_popup(self.hex_code_label.cget("text")))
 
         # Initialize the association display for the default color
-        self.display_association("#ffffff")
+        self.display_association("#ffffff")  # white color hex code
 
     def update_color_display(self, event=None):
         input_value = self.hex_entry.get().strip().lower()
@@ -150,20 +159,23 @@ class ColorsTab:
         # Update association label and hyperlinks
         if association:
             # Color has an association
-            display_text = association[:100] + "..." if len(association) > 100 else association
-            self.association_label.config(text=f"Association: {display_text}", fg="black")
+            display_text = association
+            self.association_label.config(text=f"{display_text}", fg="black")
             self.write_one_link.pack_forget()  # Hide "Write one..." link
             self.save_later_link.pack_forget()  # Hide "Save for later..." link
+            self.edit_link.pack()  # Show "Edit..." link
         elif is_saved_for_later:
             # Color is saved for later but has no association
             self.association_label.config(text="Saved for later. No associations described yet.", fg="gray")
             self.write_one_link.pack()  # Show "Write one..." link
             self.save_later_link.pack_forget()  # Hide "Save for later..." link since already saved
+            self.edit_link.pack_forget() # Hide "Edit..." link
         else:
             # Color has no association and is not saved for later
             self.association_label.config(text="No associations described yet.", fg="gray")
             self.write_one_link.pack()  # Show "Write one..." link
             self.save_later_link.pack()  # Show "Save for later..." link
+            self.edit_link.pack_forget() # Hide "Edit..." link
 
     def open_xkcd_browser(self):
         # Create popup window
@@ -293,9 +305,17 @@ class ColorsTab:
         populate(all_rows)
 
     def add_association_popup(self, hex_code):
+        # Check if association already exists
+        db = load_database()
+        existing_association = None
+        for entry in db:
+            if entry["hex"].lower() == hex_code.lower():
+                existing_association = entry["associations"]
+                break
+        
         # Popup window
         popup = tk.Toplevel(self.parent)
-        popup.title("Add Association")
+        popup.title("Edit Association" if existing_association else "Add Association")
         popup.geometry("400x175")
         popup.transient(self.parent)
         popup.grab_set()
@@ -316,6 +336,10 @@ class ColorsTab:
         # Entry field
         text = tk.Text(popup, height=5, wrap="word")
         text.pack(padx=15, pady=(0, 10), fill="both", expand=True)
+        
+        # Pre-populate with existing association if editing
+        if existing_association:
+            text.insert("1.0", existing_association)
 
         # Buttons
         def save_and_close():
