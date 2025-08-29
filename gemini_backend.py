@@ -34,41 +34,57 @@ def generate_summary_text(data):
             raise ValueError("API key is required for this operation")
     
     prompt = (
-        """You are an expert at organizing human descriptions of color associations into meaningful psychological categories.
+        """You are an expert at concisely summarizing color associations based on their color categories.
 
 Given a list of colors and their associated synesthetic descriptions, summarize the data by:
-1. Grouping colors into broader color categories arranged in rainbow order.
-2. Organizing traits within each group by hue.
-3. Focusing on common patterns.
+1. Grouping colors into primary, secondary, and tertiary color categories arranged in rainbow order.
+2. Subcategorizing and summarizing each group by HUE (NO MORE THAN 4).  ("Light purples" ✅, "murky yellows" ✅, "earthy greens" ✅)
 
 Whenever you mention a specific color, ALWAYS include the hex code afterward, like "dark maroon (#3c0008)".
 Consider combinations of primary and secondary colors (like blue-greens, blue-purples, and purple-reds) separately from primary and secondary colors, and focus on how they combine aspects of the colors mixed. Place them between the colors that make them up, following rainbow order.
 
 Format the output like this:
-- Use section headings in ALL CAPS for major color groups. Separate sections with a double horizontal line as shown.
-- Use indentation and dashes for subcategorization of the HUES only (e.g. "bright", "dark", "earthy", "muted" shades) and examples
+- Use indentation and dashes for subcategorization
+- Categorize the HUES ONLY, not the associations connected to them (e.g. "bright", "dark", "earthy", "muted" shades) and examples
 - Use hanging bullet point format with a bullet for each complete thought
 - No more than 64 characters per line!
 - Avoid markdown formatting.
-- Summarize each group of colors as concisely as possible. Focus on overarching patterns.
 - Keep it visually clear and intuitive, using the following format:
 
 WARM COLORS
 -----------------------------------------------------------------------
-Pinks:
-...
-Reds:
-   - Bright reds: Loud, lack emotional awareness, and pushing others away
-     due to self-control issues (lightish red #fe2f4a).
-       - Lightish red (#fe2f4a): Loud-mouthed, lack awareness, ...
-       - [1 more concise example ONLY if it provides additional context or insight]
-   - Muted reds: [One-sentence summary]
-       - [2 specific concise examples ONLY if they provide additional context or insight]
+Pinks: [Three-word summary]
+   - Light Pinks: [Short summary]
+       - Baby pink (#ffb7ce): [Four-word summary of association]
+   - Bright Pinks: [Short summary]
+       - Hot pink (#ff028d): [Four-word summary of association]
+       - Barbie pink (#fe46a5): [Four-word summary of association]
+   - Muted Pinks: [Short summary]
+       - Greyish pink (#c88d94): [Four-word summary of association]
+
+Reds: [Three-word summary]
+   - Bright Reds: [Short summary]
+       - Lightish red (#fe2f4a): [Four-word summary of association]
+       - Watermelon (#fd4659): [Four-word summary of association]
+   - Muted Reds: [Short summary]
+       - Pastel red (#db5856): [Four-word summary of association]
+       - Raspberry (#b00149): [Four-word summary of association]
+   - Dark Reds: [Short summary]
+       - Dark maroon (#3c0008): [Four-word summary of association]
+       - Dried blood (#4b0101): [Four-word summary of association]
+
+Oranges: 
+[...]
+
+Yellow-Oranges:
+[...]
+
 Yellows:
-   - Bright yellows: [One-sentence summary]
-       - [2 specific concise examples ONLY if they provide additional context or insight]
-   - Murky yellows: [One-sentence summary]
-       - [2 specific concise examples ONLY if they provide additional context or insight]\n\n\n   
+[...]
+
+Yellow-Greens:
+
+\n\n\n   
 COOL COLORS
 -----------------------------------------------------------------------
 ...\n\n\n
@@ -131,7 +147,7 @@ def generate_chat_response(prompt, data):
         "synesthetic color associations:\n\n"
         f"{db_text}\n\n"
         "Your job is to respond to the user's prompt using clear and intuitive "
-        "plaintext formatting that fits well in a window ~70 characters wide.\n\n"
+        "plaintext formatting that fits well in a window ~64 characters wide.\n\n"
         "FORMATTING GUIDELINES:\n"
         "- Use ALL-CAPS for major headers\n"
         "- Use hanging indents: when a line wraps, indent it with 6 spaces so it's aligned with "
@@ -142,11 +158,6 @@ def generate_chat_response(prompt, data):
         "- Use hex codes when referencing colors\n"
         "- Keep line length around 70 characters for readability\n"
         "- Use consistent spacing and line breaks\n\n"
-        "Example formatting:\n\n"
-        "BRIGHT VS DARK:\n"
-        "   Bright colors generally correlate with high energy and outward expression. For example, vibrant joy (light purple #bf77f6), obnoxious attention-seeking (lemon #fdff52), and uncontrolled emotional outbursts (hot pink #ff028d).\n\n"
-        "   Dark colors tend to represent deeper, more complex, and often internal states. Examples include profound wisdom gained from pain (dark turquoise #045c5a), deep loneliness and succumbing to pain (dark purple #35063e), and manipulative and intimidating traits (very dark brown #1d0200).\n\n"
-        "Choose the structure that best suits the user's prompt.\n\n"
         f"Prompt: {prompt}"
     )
     response = client.models.generate_content(

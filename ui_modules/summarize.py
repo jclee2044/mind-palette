@@ -101,7 +101,7 @@ class SummarizeTab:
 
         try:
             update_summary_file(db)
-            messagebox.showinfo("Summary", "Summary updated!")
+            messagebox.showinfo("Summary", "Summary updated!\n NOTE: Quality will improve as more data is collected.")
             self.setup_ui()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to generate summary: {str(e)}")
