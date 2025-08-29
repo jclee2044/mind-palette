@@ -152,6 +152,8 @@ class AssociationsTab:
     def filter_associations(self, *args):
         filter_text = self.search_var.get()
         self.populate_associations_table(filter_text)
+        # Scroll to top after filtering
+        self.associations_canvas.yview_moveto(0)
 
     def edit_association(self, entry):
         # Create edit dialog

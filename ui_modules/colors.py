@@ -300,6 +300,8 @@ class ColorsTab:
             else:
                 filtered = [e for e in all_rows if q in e["name"].lower() or q in e["hex"].lower()]
                 populate(filtered)
+            # Scroll to top after filtering
+            canvas.yview_moveto(0)
 
         query_var.trace("w", do_filter)
         populate(all_rows)
@@ -513,6 +515,8 @@ class ColorsTab:
             else:
                 filtered = [e for e in all_rows if q in e["name"].lower() or q in e["hex"].lower()]
                 populate(filtered)
+            # Scroll to top after filtering
+            canvas.yview_moveto(0)
 
         query_var.trace("w", do_filter)
         populate(all_rows)
