@@ -112,7 +112,7 @@ class SynesthesiaApp(tk.Tk):
         AboutPopup(self)
 
     def open_donate(self):
-        webbrowser.open("https://example.com/donate")
+        webbrowser.open("https://venmo.com/Jacob-Lee-546")
     # ---------- /Footer ----------
 
     def on_tab_changed(self, event):
