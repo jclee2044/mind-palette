@@ -1,5 +1,5 @@
 **Getting Started**  
-Welcome to MindPalette, a tool for training, developing, and enhancing your understanding of your synesthetic color associations. This app is yours— an external representation of your internal world, which you can easily share with others. Be proud of it!
+Welcome to MindPalette, a tool for training, developing, and enhancing your understanding of your synesthetic color associations. This app is yours— an external representation of your internal world, which you can easily share with others. Make it your own and be proud of it!
 
 Navigate between tabs using the menu at the top. Each tab focuses on a different function:
 

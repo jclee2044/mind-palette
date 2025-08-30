@@ -9,6 +9,7 @@ from ui_modules.chat import ChatTab
 from ui_modules.colors import ColorsTab
 from ui_modules.associations import AssociationsTab
 from ui_modules.popups.help_popup import HelpPopup
+from ui_modules.popups.about_popup import AboutPopup
 from utils import set_database_update_callback
 
 
@@ -108,12 +109,7 @@ class SynesthesiaApp(tk.Tk):
         HelpPopup(self)
 
     def open_about(self):
-        messagebox.showinfo(
-            "About MindPalette",
-            "MindPalette\n\n"
-            "A Python-powered tool for training, developing, and enhancing "
-            "one’s understanding of synesthetic color associations."
-        )
+        AboutPopup(self)
 
     def open_donate(self):
         webbrowser.open("https://example.com/donate")
