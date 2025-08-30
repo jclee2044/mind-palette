@@ -8,7 +8,7 @@ from ui_modules.summarize import SummarizeTab
 from ui_modules.chat import ChatTab
 from ui_modules.colors import ColorsTab
 from ui_modules.associations import AssociationsTab
-from ui_modules.help_popup import HelpPopup
+from ui_modules.popups.help_popup import HelpPopup
 from utils import set_database_update_callback
 
 

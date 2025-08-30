@@ -3,7 +3,7 @@ from tkinter import messagebox, filedialog
 import os
 from gemini_backend import update_summary_file, has_api_key
 from utils import load_database, ASCII_ART, setup_cross_platform_scrolling
-from ui_modules.api_key_popup import APIKeyPopup
+from ui_modules.popups.api_key_popup import APIKeyPopup
 
 
 class SummarizeTab:
@@ -79,7 +79,7 @@ class SummarizeTab:
         message_label.pack(pady=(0, 10))
         
         # Link to add API key
-        link_label = tk.Label(center_frame, text="Add one...", 
+        link_label = tk.Label(center_frame, text="Add one (it's easy!)", 
                              font=("Arial", 13), fg="blue", cursor="hand2")
         link_label.pack()
         

@@ -100,7 +100,7 @@ class HelpPopup:
 
     def load_help_content(self):
         """Load and parse the help content from help_menu.txt"""
-        help_path = "ui_modules/help_menu.txt"
+        help_path = "ui_modules/popups/help_menu.txt"
         
         if not os.path.exists(help_path):
             self.show_fallback_content()

@@ -99,5 +99,6 @@ Your data is always stored locally in the db/ folder. We do not collect any of y
 • Saved for Later: db/saved_for_later.json
 • Summary: db/summary.txt
 • Saved Chats: db/saved_chats.json
+• API Key: .env
 
 Feel free to share your exports with researchers or collaborators!
