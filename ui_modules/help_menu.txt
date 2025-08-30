@@ -1,0 +1,103 @@
+**Getting Started**  
+Welcome to MindPalette, a tool for training, developing, and enhancing your understanding of your synesthetic color associations. This app is yours— an external representation of your internal world, which you can easily share with others. Be proud of it!
+
+Navigate between tabs using the menu at the top. Each tab focuses on a different function:
+
+   •  Train: Write new associations.
+
+   •  Summarize: Generate summaries of your data with AI.
+
+   •  Chat: Ask questions about your data with AI.
+
+   •  Colors: View and manage individual colors.
+
+   •  Associations: Browse and edit your full dataset.
+
+
+**Tips & Best Practices**
+General Tips
+
+• Write short but vivid associations for clarity. Be specific.
+
+• Keep entries authentic. Don’t overthink it!
+
+• Remember: More data means better AI responses.
+
+• Save tricky colors for later. They may become easier to describe.
+
+• Periodically revise your descriptions as your perceptions develop.
+
+**Train Tab**  
+On this tab, the system will randomly select a color to display in the box. All you have to do is write your associations in the text field. Click "Skip/Next Color" to either skip the current color if you haven't written anything, or to save your association to the database and view the next color.
+
+Click the "Save for Later" button to save a color for later. Refer to the "Colors" tab to see how you can access this list.
+
+Your associations data is stored both in db/associations.json and db/associations_backup.json. Note that the more color-association data is in the database, the better the AI responses will become (if you are using the Summarize and Chat features).
+
+Keyboard shortcuts: Press Enter to submit, Shift+Enter to add a newline, Ctrl+A to select all text, and Home/End to move to the start/end of a line.
+
+
+
+**Summarize Tab**  
+This tab is used to generate summaries of color categories and their associations. You will need an API key to be able to use this function. If you do not have one configured, simply follow the instructions on the tab to do so.
+
+Click the "Generate Summary" or "New Summary" button at any time to generate a new summary based on the data, organized by color and hue. This may take up to two minutes to generate, after which a popup will appear, and you will be able to see the new summary in the main window. Note that the more color•association data is in the database, the better the AI responses will become.
+
+You can also save the AI•generated summary as a .txt file, or directly copy from the text field. Whenever you generate a new summary, the existing db/summary.txt is replaced, so please export your summaries to .txt if you want to keep multiple! Unless you generate a new summary or delete the db/summary.txt file, you will also see the newest summary whenever you open the app. 
+
+The underlying prompt for summary generation is found in gemini_backend.py and can be adjusted there according to your liking. Please note that our current version does not support full Markdown format and is best limited to about 64 characters per line for readability.
+
+
+
+**Chat Tab**  
+Here, you can ask your own questions about the data and receive tailored responses. You will need an API key to be able to use this function. If you do not have one configured, simply follow the instructions on the tab to do so.
+
+Simply enter your prompt in the first text box, then click "Generate Response" or press the Enter key to generate the response. It may take up to two minutes to generate. Note that the more color•association data is in the database, the better the AI responses will become.
+
+To save one of the chats, simply click "Save Chat". You can also export it to a .txt file by clicking the "Export to .txt" button or by directly copying any of the text from the response window. To view saved chats, click the "View Saved Chats" button. This will open a pop•up window with all of your saved chats, which you can select on the left•hand side. To delete a chat, simply press the Delete key on your keyboard.
+
+Keyboard shortcuts: Enter submits your prompt, Shift+Enter creates a newline, Ctrl+A selects all text, Home/End move the cursor to the start or end of a line.
+
+The underlying prompt for summary generation is found in gemini_backend.py and can be adjusted there according to your liking. Please note that our current version does not support Markdown format and is best limited to about 64 characters per line for readability.
+
+
+
+**Colors Tab**  
+Here, you can browse and view individual colors. From the "Input Type" dropdown you can select the color name (such as "warm grey" or "indigo blue") or hex code (such as #341c02 or #0485d1).
+
+If you click the "Browse XKCD…" button, you can search for colors, either by scrolling or by entering queries in the search bar at the top. On the table, if a color has already been described, a green ✓ will appear in the Status column. If it has been saved for later, a blue S will appear instead. Clicking on any color will cause that color to appear in the color viewer in the main window.
+
+If you click the "View Saved for Later…" button, you can view the colors that you have saved for later (stored in db/saved_for_later.json), or click the X button to remove any color from the list. As in the XKCD table, clicking on any color will cause that color to appear in the color viewer in the main window.
+
+Once a color has been selected, it will appear in the box, with the color name and hex code underneath. If no association has been described yet, the viewer will say so, and you can click "Write one" to write an association, or click the "Save for later" link to add it to the saved list also accessible in this panel. If there is an association already, it will appear beneath the hex code with the option to edit the association.
+
+
+
+**Associations Tab**  
+Here you will find a tabular view of your data, organized roughly by rainbow order. You can search any of the fields in the table using the search bar at the top. You can edit/view any of your associations by clicking the "Edit" button on the right, or delete them by clicking the X button. The backend file containing the associations (found in db/associations.json) will be automatically updated accordingly.
+
+You can also click the "Export Data to Excel" button to export the data to Excel for easy sharing and further analysis. If you are looking to share your data with a researcher, this may be the preferred option.
+
+
+
+**API Keys**  
+Summarize and Chat require a Gemini API key. Train, Colors, and Associations do not. That means you can start documenting your associations right away!
+
+To add an API key:
+• Go to the Summarize or Chat tab.
+• Click "Add one…" when prompted.
+• Follow the popup instructions to create and paste your key.
+• Keys are saved in the .env file and loaded automatically.
+
+To update your key, you can directly edit the .env file with your new key or delete the file and repeat the above process. The old key will be overwritten.
+
+
+**Data Storage and Privacy**  
+Your data is always stored locally in the db/ folder. We do not collect any of your data!
+
+• Associations: db/associations.json, db/associations_backup.json
+• Saved for Later: db/saved_for_later.json
+• Summary: db/summary.txt
+• Saved Chats: db/saved_chats.json
+
+Feel free to share your exports with researchers or collaborators!
