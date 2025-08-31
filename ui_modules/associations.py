@@ -70,6 +70,21 @@ class AssociationsTab:
         # Initial population of the table
         self.populate_associations_table()
 
+    def switch_to_colors_tab(self, hex_code):
+        """Switch to the Colors tab and display the specified color"""
+        # Get the main application window
+        app = self.parent.winfo_toplevel()
+        
+        # Switch to Colors tab (index 3)
+        app.notebook.select(3)
+        
+        # Get the colors module and update the display
+        colors_module = app.colors_module
+        colors_module.input_type.set("Hex Code")
+        colors_module.hex_entry.delete(0, tk.END)
+        colors_module.hex_entry.insert(0, hex_code)
+        colors_module.update_color_display()
+
     def refresh_table(self):
         """Refresh the associations table with latest data"""
         self.all_associations_data = load_database()
@@ -115,9 +130,12 @@ class AssociationsTab:
             row_frame = tk.Frame(self.scrollable_frame)
             row_frame.pack(fill="x", pady=0)
 
-            # Color square
-            color_canvas = tk.Canvas(row_frame, width=20, height=20, bg=entry['hex'], relief="solid", bd=1)
+            # Color square - make it clickable
+            color_canvas = tk.Canvas(row_frame, width=20, height=20, bg=entry['hex'], relief="solid", bd=1, cursor="hand2")
             color_canvas.pack(side="left", padx=(0, 2))
+            
+            # Bind click event to switch to colors tab
+            color_canvas.bind("<Button-1>", lambda e, hex_code=entry['hex']: self.switch_to_colors_tab(hex_code))
 
             # Color name
             name_label = tk.Label(row_frame, text=entry['xkcd_name'], width=12, anchor="w")

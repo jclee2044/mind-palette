@@ -73,7 +73,9 @@ Once a color has been selected, it will appear in the box, with the color name a
 
 
 **Associations Tab**  
-Here you will find a tabular view of your data, organized roughly by rainbow order. You can search any of the fields in the table using the search bar at the top. You can edit/view any of your associations by clicking the "Edit" button on the right, or delete them by clicking the X button (it will ask you to confirm). The backend file containing the associations (found in db/associations.json) will be automatically updated accordingly.
+Here you will find a tabular view of your data, organized roughly by rainbow order. You can search any of the fields in the table using the search bar at the top. Click any color square to make it appear in the Colors tab.
+
+You can edit/view any of your associations by clicking the "Edit" button on the right, or delete them by clicking the X button (it will ask you to confirm). The backend file containing the associations (found in db/associations.json) will be automatically updated.
 
 You can also click the "Export Data to Excel" button to export the data to Excel for easy sharing and further analysis. If you are looking to share your data with a researcher, this may be the preferred option.
 

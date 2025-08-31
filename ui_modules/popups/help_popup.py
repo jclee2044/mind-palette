@@ -86,7 +86,7 @@ class HelpPopup:
         self.text_widget = tk.Text(
             text_container,
             wrap="word",
-            font=("Arial", 12),
+            font=("Arial", 13),
             padx=15,
             pady=15,
             state="disabled"
