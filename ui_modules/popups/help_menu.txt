@@ -27,7 +27,7 @@ Navigate through tabs using the menu at the top. Each tab focuses on a different
 • Periodically revise your descriptions as your perceptions develop.
 
 **Train Tab**  
-On this tab, the system will randomly select a color to display in the box. All you have to do is write your associations in the text field. Click "Skip/Next Color" to either skip the current color if you don't want to write one, or to save your association to the database and move on to the next color.
+On this tab, the system will randomly choose a color to display in the box, from the list of colors that do not currently have an association description. All you have to do is write your associations in the text field. Click "Skip/Next Color" or press "Enter" to either skip the current color if you don't want to write an association for it now, or to save your association to the database and move on to the next color.
 
 Click the "Save for Later" button to save a color for later. You can access this list in the Colors tab.
 
@@ -62,13 +62,13 @@ The underlying prompt for summary generation is found in gemini_backend.py and c
 
 
 **Colors Tab**  
-Here, you can browse and view individual colors. From the "Input Type" dropdown you can select the color name (such as "warm grey" or "indigo blue") or hex code (such as #341c02 or #0485d1).
+Here, you can browse and view individual colors. From the "Input Type" dropdown you can select the color name (such as "warm grey" or "indigo blue") or hex code (such as #341c02 or #0485d1). Note that this application uses the XKCD color library, so some hex codes may not have an associated color name.
 
 If you click the "Browse XKCD…" button, you can search for colors, either by scrolling or by applying filters via the search bar at the top. On the table, if a color has already been described, a green ✓ will appear in the Status column. If it has been saved for later, a blue S will appear instead. Clicking on any color will cause that color to appear in the color viewer in the main window.
 
 If you click the "View Saved for Later…" button, you can view the colors that you have saved for later (stored in db/saved_for_later.json), or click the X button to remove any color from the list. As in the XKCD table, clicking on any color will cause that color to appear in the color viewer in the main window.
 
-Once a color has been selected, it will appear in the box, with the color name and hex code underneath. If no association has been described yet, the viewer will say so, and you can click "Write one" to write an association, or click "Save for later" to add it to the saved list also accessible in this panel. If there is an association already, it will appear beneath the hex code with the option to edit the association.
+Once a color has been selected, it will appear in the box, with the color name and hex code underneath. If you have already described any associations for the color, you can view and edit them here. If no association has been described yet, the viewer will say so, and you can click "Write one" to write an association, or click "Save for later" to add the color to the saved list, which is also accessible in this panel. 
 
 
 
@@ -94,7 +94,7 @@ To update your key, you can directly edit the .env file with your new key or del
 
 
 **Data Storage and Privacy**  
-Your data is always stored locally in the db/ folder. We do not collect any of your data!
+Your data is always stored locally in the db/ folder and will be saved regardless of when you close or open the app.. We do not collect any of your data!
 
 • Associations: db/associations.json, db/associations_backup.json
 • Saved for Later: db/saved_for_later.json
@@ -103,3 +103,44 @@ Your data is always stored locally in the db/ folder. We do not collect any of y
 • API Key: .env
 
 Feel free to share your exports with researchers or collaborators!
+
+
+**FAQs**  
+Q: Where do the colors come from and how many are there in total?
+A: The app uses the XKCD color survey list from Matplotlib (see https://xkcd.com/color/rgb/), which contains about 950 colors, as named by several hundred thousand participants. Once you’ve written associations for all of them, the Train tab will tell you you’ve finished.
+
+Q: Why do some colors look almost identical?
+A: The XKCD list includes many subtle shades with only minor differences in hex code. This is intentional, to capture nuance in human perception.
+
+Q: Why does the same color look different on my monitor compared to another device?
+A: Colors may appear slightly different depending on your screen’s brightness, calibration, and settings. The hex code itself is always consistent.
+
+Q: What if I save a color for later, but then describe it in Train?
+A: The “saved for later” entry is automatically removed once you write and save an association for that color.
+
+Q: What happens if I delete an association?
+A: If you delete a color’s association in the Associations tab, that color goes back into the pool of “untrained” colors. The next time you use the Train tab, it may appear again.
+
+Q: Can I write multiple associations for the same color?
+A: Currently, each color can only store one text block at a time, but you can store multiple associations together. You may find it helpful to separate them by senses ("Smell: x, Sound: y").
+
+Q: Can I undo changes after editing an association?
+A: There’s no undo button, but you can edit the entry again. If you want to preserve earlier versions, export your associations before making changes.
+
+Q: What happens if the database file gets corrupted?
+A: The app maintains an automatic backup in db/associations_backup.json. If db/associations.json can’t be loaded, the app will try to load from the backup instead.
+
+Q: Can I use this app offline?
+A: Yes. Training, Colors, and Associations tabs work fully offline. Summarize and Chat require an internet connection and a valid API key.
+
+Q: Is my API key stored securely?
+A: The key is saved in a local .env file. It is not uploaded anywhere. If you share your project folder, remove .env first if you don’t want others to see your key.
+
+Q: Can I share my associations with someone else who has the app?
+A: Yes. Just send them your db/associations.json (or an exported Excel/text file). They can place it into their own db/ folder to load your associations.
+
+Q: Why does Chat sometimes give a very general answer instead of using my data?
+A: The AI is trained to blend your associations with general knowledge. If your database is small, it may lean more on general associations until more data is added.
+
+Q: Can I change how the summaries or chat responses are written?
+A: Yes. The prompts used for both are located in gemini_backend.py. If you are comfortable editing Python code, you can adjust the wording, formatting, or style instructions.
