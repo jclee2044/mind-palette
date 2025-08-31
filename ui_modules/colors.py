@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from matplotlib import colors as mcolors
-from utils import load_database, save_to_database, setup_cross_platform_scrolling, load_saved_for_later, save_to_saved_for_later, remove_from_saved_for_later, sort_colors_by_rainbow
+from utils import load_database, save_to_database, setup_cross_platform_scrolling, load_saved_for_later, save_to_saved_for_later, remove_from_saved_for_later, sort_colors_by_rainbow, get_link_colors, get_text_colors
 
 
 class ColorsTab:
@@ -46,46 +46,97 @@ class ColorsTab:
         )
         self.color_display.pack(pady=(20, 10))
 
-        self.color_name_label = tk.Label(self.parent, text="white", font=("Arial", 12))
+        # Get appropriate text colors for current system appearance
+        normal_text_color, secondary_text_color = get_text_colors()
+
+        self.color_name_label = tk.Label(self.parent, text="white", font=("Arial", 12), fg=normal_text_color)
         self.color_name_label.pack()
 
-        self.hex_code_label = tk.Label(self.parent, text="#ffffff", font=("Arial", 12))
+        self.hex_code_label = tk.Label(self.parent, text="#ffffff", font=("Arial", 12), fg=normal_text_color)
         self.hex_code_label.pack()
 
         # --- association status and buttons ---
         self.association_frame = tk.Frame(self.parent)
         self.association_frame.pack(pady=(10, 0))
 
-        self.association_label = tk.Label(self.association_frame, text="", font=("Arial", 11), fg="gray", wraplength=350, justify="left")
-        self.association_label.pack()
+        # Get appropriate colors for current system appearance
+        normal_color, hover_color, _ = get_link_colors()
+        # normal_text_color and secondary_text_color already defined above
+
+        # Get parent background color
+        bg_color = self.association_frame.cget("bg")
+
+        # Create a standard label for when there's no association
+        self.association_label = tk.Label(
+            self.association_frame,
+            text="",
+            font=("Arial", 11),
+            fg=secondary_text_color,
+            wraplength=350,
+            justify="center"
+        )
+        self.association_label.pack(fill="x", expand=True, pady=(0, 5))
+
+        # Create a scrollable text widget for associations with fixed height
+        self.association_text = tk.Text(
+            self.association_frame, 
+            height=3,  # Show exactly 3 lines
+            width=50, 
+            bg=bg_color,
+            wrap="word", 
+            font=("Arial", 11),
+            fg=normal_text_color,
+            relief="flat",
+            borderwidth=0,
+            state="disabled",  # Start as read-only
+            highlightthickness=0  # Remove the border highlight
+        )
+        # Don't pack the text widget initially - it will be shown when needed
+        
+        # Add hidden scrollbar for the text widget
+        association_scrollbar = tk.Scrollbar(self.association_frame, command=self.association_text.yview)
+        association_scrollbar.pack(side="right", fill="y")
+        self.association_text.config(yscrollcommand=association_scrollbar.set)
+        
+        # Hide the scrollbar visually but keep it functional
+        association_scrollbar.pack_forget()
+        
+        # Set up cross-platform scrolling for the association text
+        setup_cross_platform_scrolling(self.association_text, self.association_text)
 
         # Hyperlink-style labels instead of buttons
         self.write_one_link = tk.Label(
             self.association_frame,
             text="Write one...",
             font=("Arial", 11),
-            fg="blue",
+            fg=normal_color,
             cursor="hand2"
         )
         self.write_one_link.bind("<Button-1>", lambda e: self.add_association_popup(self.hex_code_label.cget("text")))
+        self.write_one_link.bind("<Enter>", lambda e: self.write_one_link.config(fg=hover_color))
+        self.write_one_link.bind("<Leave>", lambda e: self.write_one_link.config(fg=normal_color))
         
         self.save_later_link = tk.Label(
             self.association_frame,
             text="Save for later...",
             font=("Arial", 11),
-            fg="blue",
+            fg=normal_color,
             cursor="hand2"
         )
         self.save_later_link.bind("<Button-1>", lambda e: self.save_current_for_later(self.hex_code_label.cget("text")))
+        self.save_later_link.bind("<Enter>", lambda e: self.save_later_link.config(fg=hover_color))
+        self.save_later_link.bind("<Leave>", lambda e: self.save_later_link.config(fg=normal_color))
         
         self.edit_link = tk.Label(
             self.association_frame,
             text="Edit...",
             font=("Arial", 11),
-            fg="blue",
+            fg=normal_color,
             cursor="hand2"
         )
         self.edit_link.bind("<Button-1>", lambda e: self.add_association_popup(self.hex_code_label.cget("text")))
+        self.edit_link.bind("<Enter>", lambda e: self.edit_link.config(fg=hover_color))
+        self.edit_link.bind("<Leave>", lambda e: self.edit_link.config(fg=normal_color))
 
         # Initialize the association display for the default color
         self.display_association("#ffffff")  # white color hex code
@@ -94,14 +145,17 @@ class ColorsTab:
         input_value = self.hex_entry.get().strip().lower()
         mode = self.input_type.get()
 
+        # Get appropriate text colors for current system appearance
+        normal_text_color, secondary_text_color = get_text_colors()
+
         if mode == "Hex Code":
             if input_value.startswith("#") and len(input_value) == 7:
                 try:
                     self.color_display.config(bg=input_value)
-                    self.hex_code_label.config(text=input_value)
+                    self.hex_code_label.config(text=input_value, fg=normal_text_color)
                     match = [name for name, val in mcolors.XKCD_COLORS.items() if val.lower() == input_value]
                     name = match[0].replace("xkcd:", "") if match else "unknown"
-                    self.color_name_label.config(text=f"{name}")
+                    self.color_name_label.config(text=f"{name}", fg=normal_text_color)
                     self.display_association(input_value)
                 except tk.TclError:
                     pass
@@ -123,9 +177,9 @@ class ColorsTab:
             if hex_code:
                 try:
                     self.color_display.config(bg=hex_code)
-                    self.hex_code_label.config(text=hex_code)
+                    self.hex_code_label.config(text=hex_code, fg=normal_text_color)
                     display_name = color_name.replace("xkcd:", "")
-                    self.color_name_label.config(text=f"{display_name}")
+                    self.color_name_label.config(text=f"{display_name}", fg=normal_text_color)
                     self.display_association(hex_code)
                 except tk.TclError:
                     pass
@@ -146,6 +200,9 @@ class ColorsTab:
         db = load_database()
         saved_for_later = load_saved_for_later()
         
+        # Get appropriate text colors for current system appearance
+        normal_text_color, secondary_text_color = get_text_colors()
+        
         # Check if color has an association
         association = None
         for entry in db:
@@ -156,26 +213,43 @@ class ColorsTab:
         # Check if color is saved for later
         is_saved_for_later = any(entry["hex"].lower() == hex_code.lower() for entry in saved_for_later)
         
-        # Update association label and hyperlinks
+        # Hide both widgets initially
+        self.association_label.pack_forget()
+        self.association_text.pack_forget()
+        
+        # Hide all action links initially
+        self.write_one_link.pack_forget()
+        self.save_later_link.pack_forget()
+        self.edit_link.pack_forget()
+        
         if association:
-            # Color has an association
-            display_text = association
-            self.association_label.config(text=f"{display_text}", fg="black")
-            self.write_one_link.pack_forget()  # Hide "Write one..." link
-            self.save_later_link.pack_forget()  # Hide "Save for later..." link
-            self.edit_link.pack()  # Show "Edit..." link
+            # Color has an association - show text widget
+            self.association_text.config(state="normal")
+            self.association_text.delete("1.0", tk.END)
+            self.association_text.insert("1.0", association)
+            self.association_text.config(fg=normal_text_color)
+            self.association_text.pack(fill="x", expand=True, pady=(0, 0))
+            self.association_text.config(state="disabled")  # Make read-only again
+            
+            # Show "Edit..." link below the association
+            self.edit_link.pack(pady=(0, 0))
+            
         elif is_saved_for_later:
-            # Color is saved for later but has no association
-            self.association_label.config(text="Saved for later. No associations described yet.", fg="gray")
-            self.write_one_link.pack()  # Show "Write one..." link
-            self.save_later_link.pack_forget()  # Hide "Save for later..." link since already saved
-            self.edit_link.pack_forget() # Hide "Edit..." link
+            # Color is saved for later but has no association - show label
+            self.association_label.config(text="Saved for later. No associations described yet.", fg=secondary_text_color)
+            self.association_label.pack(fill="x", expand=True, pady=(0, 0))
+            
+            # Show "Write one..." link below the message
+            self.write_one_link.pack(pady=(0, 0))
+            
         else:
-            # Color has no association and is not saved for later
-            self.association_label.config(text="No associations described yet.", fg="gray")
-            self.write_one_link.pack()  # Show "Write one..." link
-            self.save_later_link.pack()  # Show "Save for later..." link
-            self.edit_link.pack_forget() # Hide "Edit..." link
+            # Color has no association and is not saved for later - show label
+            self.association_label.config(text="No associations described yet.", fg=secondary_text_color)
+            self.association_label.pack(fill="x", expand=True, pady=(0, 0))
+            
+            # Show "Write one..." and "Save for later..." links in order
+            self.write_one_link.pack(pady=(0, 0))
+            self.save_later_link.pack(pady=(0, 0))
 
     def open_xkcd_browser(self):
         # Create popup window
@@ -423,11 +497,14 @@ class ColorsTab:
         search_entry.pack(side="left", padx=(8, 0))
         search_entry.focus_set()
 
+        # Get appropriate text colors for current system appearance
+        normal_text_color, secondary_text_color = get_text_colors()
+
         instr = tk.Label(
             win,
             text="Click any color to load it in the viewer.",
             font=("Arial", 11, "italic"),
-            fg="gray",
+            fg=secondary_text_color,
             anchor="w",
             justify="left"
         )

@@ -2,6 +2,9 @@ import json
 import os
 import tkinter as tk
 import colorsys
+import platform
+import subprocess
+import sys
 
 # Global callback for database updates
 _database_update_callback = None
@@ -19,6 +22,73 @@ def get_database_update_callback():
 DB_PATH = "db/associations.json"
 saved_for_later_PATH = "db/saved_for_later.json"
 
+
+# ---------- Dark mode detection and link colors ----------
+
+def is_dark_mode():
+    """
+    Detect if the system is in dark mode.
+    Returns True for dark mode, False for light mode.
+    """
+    system = platform.system()
+    
+    if system == "Darwin":  # macOS
+        try:
+            # Use osascript to query the system appearance
+            result = subprocess.run(
+                ['osascript', '-e', 'tell application "System Events" to tell appearance preferences to get dark mode'],
+                capture_output=True, text=True, timeout=5
+            )
+            return result.stdout.strip().lower() == "true"
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
+            # Fallback: check if we can detect dark mode from tkinter
+            try:
+                import tkinter as tk
+                root = tk.Tk()
+                root.withdraw()  # Hide the window
+                # Try to get the system appearance from tkinter
+                bg_color = root.cget("bg")
+                root.destroy()
+                # If background is dark, assume dark mode
+                return bg_color.lower() in ['black', '#000000', 'systemwindowbackgroundcolor']
+            except:
+                return False
+    
+    elif system == "Windows":
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, 
+                              r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize") as key:
+                value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
+                return value == 0  # 0 = dark mode, 1 = light mode
+        except (FileNotFoundError, OSError):
+            return False
+    
+    else:  # Linux and other systems
+        # For Linux, we'll use a simple heuristic based on environment variables
+        # This is not perfect but covers most cases
+        dark_mode_env = os.environ.get('GTK_THEME', '').lower()
+        return 'dark' in dark_mode_env or 'adwaita-dark' in dark_mode_env
+
+def get_link_colors():
+    """
+    Get appropriate link colors for the current system appearance.
+    Returns a tuple of (normal_color, hover_color, active_color)
+    """
+    if is_dark_mode():
+        return ("#87CEEB", "#B0E0E6", "#ADD8E6")  # Light blue variants for dark mode
+    else:
+        return ("blue", "darkblue", "navy")  # Standard blue variants for light mode
+
+def get_text_colors():
+    """
+    Get appropriate text colors for the current system appearance.
+    Returns a tuple of (normal_text_color, secondary_text_color)
+    """
+    if is_dark_mode():
+        return ("white", "#CCCCCC")  # White for normal text, light gray for secondary text
+    else:
+        return ("black", "gray")  # Black for normal text, gray for secondary text
 
 # ---------- Color utilities ----------
 

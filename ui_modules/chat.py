@@ -4,7 +4,7 @@ import json
 import os
 from gemini_backend import generate_chat_response, has_api_key
 from key_bindings import apply_text_navigation_bindings, bind_enter_to_submit
-from utils import load_database, setup_cross_platform_scrolling
+from utils import load_database, setup_cross_platform_scrolling, get_link_colors
 from ui_modules.popups.api_key_popup import APIKeyPopup
 
 
@@ -273,15 +273,18 @@ class ChatTab:
                                 font=("Arial", 14))
         message_label.pack(pady=(0, 10))
         
+        # Get appropriate link colors for current system appearance
+        normal_color, hover_color, _ = get_link_colors()
+        
         # Link to add API key
         link_label = tk.Label(center_frame, text="Add one (it's easy!)", 
-                             font=("Arial", 13), fg="blue", cursor="hand2")
+                             font=("Arial", 13), fg=normal_color, cursor="hand2")
         link_label.pack()
         
         # Bind click event to the link
         link_label.bind("<Button-1>", self.open_api_key_help)
-        link_label.bind("<Enter>", lambda e: link_label.config(fg="darkblue"))
-        link_label.bind("<Leave>", lambda e: link_label.config(fg="blue"))
+        link_label.bind("<Enter>", lambda e: link_label.config(fg=hover_color))
+        link_label.bind("<Leave>", lambda e: link_label.config(fg=normal_color))
 
     def open_api_key_help(self, event=None):
         """Open help for adding API key"""

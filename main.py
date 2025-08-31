@@ -10,7 +10,7 @@ from ui_modules.colors import ColorsTab
 from ui_modules.associations import AssociationsTab
 from ui_modules.popups.help_popup import HelpPopup
 from ui_modules.popups.about_popup import AboutPopup
-from utils import set_database_update_callback
+from utils import set_database_update_callback, get_link_colors
 
 
 class SynesthesiaApp(tk.Tk):
@@ -59,24 +59,6 @@ class SynesthesiaApp(tk.Tk):
 
     # ---------- Footer ----------
     def create_footer_links(self, parent):
-        # Match notebook bg so it blends with the inside panel
-        from tkinter import ttk
-        bg = ttk.Style().lookup("TFrame", "background") or parent.cget("bg")
-
-        footer = tk.Frame(parent, bg=bg)
-
-        # Overlay in bottom-right; does NOT consume layout space
-        footer.place(relx=1.0, rely=1.0, anchor="se", x=-8, y=-6)
-        footer.lift()
-        # keep it on top after resizes
-        self.bind("<Configure>", lambda e: footer.lift())
-
-        def make_link(text, command):
-            lbl = tk.Label(footer, text=text, fg="blue", bg=bg, cursor="hand2")
-            lbl.pack(side="right", padx=(0, 6))
-            lbl.bind("<Button-1>", lambda e: command())
-
-    def create_footer_links(self, parent):
         from tkinter import ttk
         bg = ttk.Style().lookup("TFrame", "background") or parent.cget("bg")
 
@@ -91,11 +73,13 @@ class SynesthesiaApp(tk.Tk):
         right.pack(side="right", padx=8)
 
         def make_link(text, command):
-            lbl = tk.Label(right, text=text, fg="blue", bg=bg, cursor="hand2")
+            # Get current link colors dynamically
+            normal_color, hover_color, _ = get_link_colors()
+            lbl = tk.Label(right, text=text, fg=normal_color, bg=bg, cursor="hand2")
             lbl.pack(side="left", padx=(0,0))
             lbl.bind("<Button-1>", lambda e: command())
-            lbl.bind("<Enter>", lambda e, l=lbl: l.config(fg="darkblue"))
-            lbl.bind("<Leave>", lambda e, l=lbl: l.config(fg="blue"))
+            lbl.bind("<Enter>", lambda e, l=lbl: l.config(fg=hover_color))
+            lbl.bind("<Leave>", lambda e, l=lbl: l.config(fg=normal_color))
             return lbl
 
         make_link("Help", self.open_help)

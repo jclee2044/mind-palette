@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 import os
 import webbrowser
+from utils import get_link_colors
 
 
 class APIKeyPopup:
@@ -41,11 +42,15 @@ class APIKeyPopup:
         step1_frame = tk.Frame(main_frame)
         step1_frame.pack(anchor="w", pady=(0, 15))
         tk.Label(step1_frame, text="1. Go to ", font=("Arial", 12)).pack(side="left")
-        link_label = tk.Label(step1_frame, text="this website.", font=("Arial", 12), fg="blue", cursor="hand2")
+        
+        # Get appropriate link colors for current system appearance
+        normal_color, hover_color, _ = get_link_colors()
+        
+        link_label = tk.Label(step1_frame, text="this website.", font=("Arial", 12), fg=normal_color, cursor="hand2")
         link_label.pack(side="left")
         link_label.bind("<Button-1>", self.open_website)
-        link_label.bind("<Enter>", lambda e: link_label.config(fg="darkblue"))
-        link_label.bind("<Leave>", lambda e: link_label.config(fg="blue"))
+        link_label.bind("<Enter>", lambda e: link_label.config(fg=hover_color))
+        link_label.bind("<Leave>", lambda e: link_label.config(fg=normal_color))
 
         # Step 2
         tk.Label(
