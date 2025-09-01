@@ -107,7 +107,7 @@ Feel free to share your exports with researchers or collaborators!
 
 **FAQs**  
 Q: Where do the colors come from and how many are there in total?
-A: The app uses the XKCD color survey list from Matplotlib (see https://xkcd.com/color/rgb/), which contains about 950 colors, as named by several hundred thousand participants. Once you’ve written associations for all of them, the Train tab will tell you you’ve finished.
+A: The app uses the XKCD color library from Matplotlib (see https://xkcd.com/color/rgb/), which contains about 950 colors, as named by several hundred thousand participants. Once you’ve written associations for all of them, the Train tab will tell you you’ve finished.
 
 Q: Why do some colors look almost identical?
 A: The XKCD list includes many subtle shades with only minor differences in hex code. This is intentional, to capture nuance in human perception.
